@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RP Market</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #121212);
+            --text-color: var(--tg-theme-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #a1a1aa);
+            --btn-color: var(--tg-theme-button-color, #3b82f6);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+            --card-bg: var(--tg-theme-secondary-bg-color, #1e1e1e);
+            --line: rgba(127,127,127,0.18);
+            --vip-color: #f59e0b;
+            --green: #10b981;
+            --red: #ef4444;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0 0 84px;
+        }
+        button { font-family: inherit; }
+        input, textarea, select {
+            font-family: inherit; font-size: 15px; color: var(--text-color);
+            background: var(--card-bg); border: 1px solid var(--line); border-radius: 10px;
+            padding: 11px 12px; width: 100%; outline: none;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--btn-color); }
+        textarea { resize: vertical; min-height: 90px; }
+        label.field { display: block; margin-bottom: 14px; }
+        label.field > span { display: block; font-size: 13px; color: var(--hint-color); margin-bottom: 6px; }
+        a { color: var(--btn-color); cursor: pointer; }
+
+        header {
+            padding: 14px 16px; background-color: var(--card-bg);
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+        }
+        .back-btn { display: none; background: none; border: none; color: var(--btn-color); font-size: 22px; cursor: pointer; padding: 0; }
+        .page-title { font-size: 18px; font-weight: 600; margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .header-balance { font-size: 13px; font-weight: 700; color: var(--green); background: rgba(16,185,129,.12); padding: 6px 10px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+
+        main { padding: 16px; }
+        .loader { width: 32px; height: 32px; margin: 60px auto; border: 3px solid var(--line); border-top-color: var(--btn-color); border-radius: 50%; animation: spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty { text-align: center; color: var(--hint-color); padding: 40px 10px; font-size: 14px; line-height: 1.5; }
+        .muted { color: var(--hint-color); font-size: 13px; }
+        .section-title { font-size: 16px; font-weight: 700; margin: 22px 0 10px; }
+        .card { background: var(--card-bg); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+        .row { display: flex; align-items: center; gap: 10px; }
+        .between { justify-content: space-between; }
+        .grow { flex: 1; min-width: 0; }
+
+        .btn { border: none; border-radius: 12px; padding: 13px 16px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; background: var(--btn-color); color: var(--btn-text); }
+        .btn:disabled { opacity: .5; }
+        .btn.secondary { background: rgba(127,127,127,.15); color: var(--text-color); }
+        .btn.green { background: var(--green); color: #fff; }
+        .btn.red { background: rgba(239,68,68,.15); color: var(--red); }
+        .btn.gold { background: var(--vip-color); color: #000; }
+        .btn.small { padding: 8px 12px; font-size: 13px; border-radius: 9px; width: auto; }
+        .btns { display: flex; gap: 8px; }
+        .btns .btn { flex: 1; }
+        .sticky-bottom { position: sticky; bottom: 76px; padding-top: 8px; z-index: 5; }
+
+        /* Банер довіри */
+        .hero { background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(16,185,129,.14)); border: 1px solid rgba(59,130,246,.25); border-radius: 14px; padding: 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.45; }
+        .hero b { font-size: 15px; display: block; margin-bottom: 4px; }
+
+        /* Projects Grid */
+        .projects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .project-card { background-color: var(--card-bg); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; border: 1px solid var(--line); transition: transform 0.1s; }
+        .project-card:active { transform: scale(0.95); }
+        .project-card img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px; }
+        .project-card .emoji { font-size: 52px; height: 80px; line-height: 80px; margin-bottom: 8px; }
+        .project-card span { font-weight: 600; font-size: 14px; }
+
+        /* Пошук і фільтри */
+        .search { margin-bottom: 10px; }
+        .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter-chip { background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--line); padding: 8px 14px; border-radius: 20px; white-space: nowrap; font-size: 13px; cursor: pointer; }
+        .filter-chip.active { background-color: var(--btn-color); color: var(--btn-text); border-color: var(--btn-color); }
+
+        /* Listings Grid */
+        .listings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .listing-card { background-color: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; display: flex; flex-direction: column; cursor: pointer; border: 1px solid transparent; }
+        .listing-card:active { transform: scale(0.98); }
+        .listing-card.vip { border-color: var(--vip-color); box-shadow: 0 0 14px rgba(245,158,11,.18); }
+        .listing-card.vip .listing-title { color: var(--vip-color); }
+        .listing-img { width: 100%; height: 110px; background-color: #2a2a2a; object-fit: cover; display: block; }
+        .ph { display: flex; align-items: center; justify-content: center; font-size: 40px; background: linear-gradient(135deg, #2a2a2a, #1a1a2e); }
+        .badges { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; }
+        .vip-badge, .top-badge { font-size: 10px; font-weight: bold; padding: 4px 7px; border-radius: 6px; text-transform: uppercase; }
+        .vip-badge { background-color: var(--vip-color); color: #000; }
+        .top-badge { background-color: var(--btn-color); color: #fff; }
+        .listing-info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .listing-title { font-size: 13px; margin: 0 0 6px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 500; }
+        .listing-seller { font-size: 11px; color: var(--hint-color); margin-bottom: 4px; }
+        .listing-price { font-size: 15px; font-weight: bold; color: var(--green); margin-top: auto; }
+
+        /* Сторінка оголошення */
+        .detail-img { width: 100%; max-height: 280px; object-fit: cover; border-radius: 14px; display: block; margin-bottom: 14px; background: #2a2a2a; }
+        .detail-img.ph { height: 180px; font-size: 64px; }
+        .detail-title { font-size: 20px; font-weight: 700; margin: 0 0 6px; line-height: 1.3; }
+        .detail-price { font-size: 26px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
+        .desc { white-space: pre-wrap; word-break: break-word; line-height: 1.5; font-size: 14px; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--btn-color); color: var(--btn-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+        .avatar.big { width: 64px; height: 64px; font-size: 26px; }
+        .stars { color: var(--vip-color); }
+        .safe-note { font-size: 12px; color: var(--hint-color); text-align: center; margin-top: 8px; }
+        .review { border-top: 1px solid var(--line); padding: 10px 0; font-size: 14px; }
+        .review:first-child { border-top: none; }
+
+        /* Форма */
+        .img-picker { border: 2px dashed var(--line); border-radius: 12px; height: 150px; display: flex; align-items: center; justify-content: center; color: var(--hint-color); cursor: pointer; overflow: hidden; position: relative; }
+        .img-picker img { width: 100%; height: 100%; object-fit: cover; }
+        .fee-box { background: rgba(16,185,129,.1); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; }
+
+        /* Угоди */
+        .seg { display: flex; background: var(--card-bg); border-radius: 12px; padding: 4px; margin-bottom: 14px; }
+        .seg button { flex: 1; border: none; background: none; color: var(--text-color); padding: 9px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .seg button.active { background: var(--btn-color); color: var(--btn-text); }
+        .status { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 20px; white-space: nowrap; }
+        .st-paid { background: rgba(59,130,246,.15); color: #60a5fa; }
+        .st-delivered { background: rgba(245,158,11,.15); color: var(--vip-color); }
+        .st-dispute { background: rgba(239,68,68,.15); color: var(--red); }
+        .st-completed { background: rgba(16,185,129,.15); color: var(--green); }
+        .st-refunded { background: rgba(127,127,127,.18); color: var(--hint-color); }
+        .steps { display: flex; justify-content: space-between; margin: 14px 0 4px; position: relative; }
+        .steps::before { content: ''; position: absolute; top: 13px; left: 12%; right: 12%; height: 2px; background: var(--line); }
+        .step { text-align: center; font-size: 11px; color: var(--hint-color); flex: 1; position: relative; }
+        .step i { display: flex; width: 28px; height: 28px; margin: 0 auto 4px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--line); align-items: center; justify-content: center; font-style: normal; font-size: 13px; }
+        .step.done { color: var(--text-color); }
+        .step.done i { background: var(--green); border-color: var(--green); color: #fff; }
+
+        /* Чат */
+        .chat { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; overflow-y: auto; padding: 4px 0 8px; }
+        .msg { max-width: 82%; padding: 8px 11px; border-radius: 14px; font-size: 14px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+        .msg small { display: block; font-size: 10px; opacity: .6; margin-top: 3px; }
+        .msg.me { align-self: flex-end; background: var(--btn-color); color: var(--btn-text); border-bottom-right-radius: 4px; }
+        .msg.other { align-self: flex-start; background: rgba(127,127,127,.15); border-bottom-left-radius: 4px; }
+        .msg.sys { align-self: center; max-width: 95%; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); font-size: 12px; text-align: center; color: var(--hint-color); }
+        .msg.admin { align-self: center; background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3); }
+        .chat-input { display: flex; gap: 8px; }
+        .chat-input input { flex: 1; }
+        .chat-input button { width: auto; padding: 0 16px; }
+
+        /* Профіль / гаманець */
+        .wallet { background: linear-gradient(135deg, #1d4ed8, #0f766e); color: #fff; border-radius: 16px; padding: 18px; margin-bottom: 14px; }
+        .wallet .sum { font-size: 30px; font-weight: 800; margin: 4px 0 12px; }
+        .wallet .sub { display: flex; gap: 18px; font-size: 12px; opacity: .85; margin-bottom: 14px; }
+        .wallet .btn { background: rgba(255,255,255,.2); color: #fff; }
+        .my-listing { display: flex; gap: 10px; align-items: center; }
+        .my-listing img, .my-listing .ph { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; font-size: 24px; }
+        .ledger-row { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+        .ledger-row:first-child { border-top: none; }
+        .plus { color: var(--green); font-weight: 700; }
+        .minus { color: var(--red); font-weight: 700; }
+
+        /* Нижня навігація */
+        nav.tabs { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card-bg); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); z-index: 200; }
+        nav.tabs button { flex: 1; background: none; border: none; color: var(--hint-color); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; padding: 4px 0; position: relative; }
+        nav.tabs button b { font-size: 20px; font-weight: normal; }
+        nav.tabs button.active { color: var(--btn-color); }
+        nav.tabs .dot { position: absolute; top: 2px; right: calc(50% - 18px); background: var(--red); color: #fff; font-size: 10px; border-radius: 10px; padding: 1px 5px; }
+        nav.tabs .sell b { background: var(--btn-color); color: var(--btn-text); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-top: -4px; }
+
+        /* Bottom sheet (модалки) */
+        .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 900; }
+        .backdrop.active { display: block; }
+        .promo-modal { display: none; position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -5px 20px rgba(0,0,0,0.5); z-index: 1000; max-height: 88vh; overflow-y: auto; }
+        .promo-modal.active { display: block; animation: up .2s ease-out; }
+        @keyframes up { from { transform: translateY(40px); opacity: 0; } }
+        .promo-modal h3 { margin-top: 0; }
+        .promo-option { background-color: rgba(127,127,127,0.08); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .promo-details h4 { margin: 0 0 4px 0; color: var(--vip-color); }
+        .promo-details p { margin: 0; font-size: 12px; color: var(--hint-color); }
+        .promo-prices { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        .pay-btn { border: none; padding: 7px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .pay-uah { background-color: var(--green); color: white; }
+        .pay-stars { background-color: #3b82f6; color: white; }
+        .close-modal { width: 100%; padding: 12px; background: rgba(127,127,127,0.15); color: var(--text-color); border: none; border-radius: 8px; margin-top: 10px; font-size: 15px; cursor: pointer; }
+        .presets { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+        .presets button { flex: 1; min-width: 60px; }
+        .rating-pick { display: flex; gap: 6px; font-size: 32px; margin-bottom: 10px; }
+        .rating-pick span { cursor: pointer; opacity: .3; }
+        .rating-pick span.on { opacity: 1; }
+        .radio { display: flex; gap: 8px; margin-bottom: 14px; }
+        .radio label { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px; text-align: center; font-size: 14px; cursor: pointer; }
+        .radio input { display: none; }
+        .radio input:checked + span { color: var(--btn-color); font-weight: 700; }
+        .radio label:has(input:checked) { border-color: var(--btn-color); }
+
+        .toast { position: fixed; left: 16px; right: 16px; bottom: 90px; background: #222; color: #fff; padding: 12px 14px; border-radius: 12px; font-size: 14px; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,.4); transition: opacity .3s; text-align: center; }
+        .toast.error { background: #7f1d1d; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="back-btn" id="backBtn" onclick="back()">🔙</button>
+        <h1 class="page-title" id="mainTitle">RP Market</h1>
+        <div class="header-balance" id="hdrBalance" onclick="setTab('profile')" style="display:none"></div>
+    </header>
+
+    <main id="main"><div class="loader"></div></main>
+
+    <nav class="tabs" id="tabs">
+        <button data-tab="market" onclick="setTab('market')"><b>🏪</b>Ринок</button>
+        <button data-tab="deals" onclick="setTab('deals')"><b>🤝</b>Угоди<span class="dot" id="dealsDot" style="display:none"></span></button>
+        <button data-tab="sell" class="sell" onclick="setTab('sell')"><b>＋</b>Продати</button>
+        <button data-tab="profile" onclick="setTab('profile')"><b>👤</b>Профіль</button>
+    </nav>
+
+    <div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
+    <div class="promo-modal" id="sheet"></div>
+
+    <script>
+    // ============================================================
+    // Якщо міні-ап лежить на GitHub Pages, а бекенд на іншому домені
+    // (тунель / VPS) — впиши сюди адресу бекенду, напр. 'https://abc.lhr.life'.
+    // Якщо index.html віддає сам бекенд — залиш порожнім.
+    const API_URL = '';
+    // ============================================================
+
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const $main = document.getElementById('main');
+    let CFG = null, ME = null, renderSeq = 0, pollTimer = null, feed = null;
+    const state = { tab: 'market', stack: [], project: null };
+
+    const STATUS = {
+        paid: ['🔒 Оплачено', 'st-paid'], delivered: ['📦 Передано', 'st-delivered'],
+        dispute: ['⚖️ Спір', 'st-dispute'], completed: ['✅ Завершено', 'st-completed'],
+        refunded: ['↩️ Повернено', 'st-refunded'],
+    };
+    const LEDGER = {
+        topup: '💳 Поповнення', deal_hold: '🔒 Оплата угоди', deal_refund: '↩️ Повернення з угоди',
+        deal_payout: '💰 Продаж', withdraw: '💸 Виведення', withdraw_back: '↩️ Скасоване виведення',
+        promo: '🚀 Просування', admin: '🛡 Коригування адміном',
+    };
+    const CAT_EMOJI = { currency: '💰', account: '👤', property: '🏠', boost: '⚡', other: '📦' };
+
+    // ---------------------------------------------------------------- утиліти
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    function uah(k) {
+        const v = (k || 0) / 100;
+        return v.toLocaleString('uk-UA', { minimumFractionDigits: Number.isInteger(v) ? 0 : 2, maximumFractionDigits: 2 }) + ' ₴';
+    }
+    const media = p => p ? API_URL + p : null;
+    const date = ts => new Date(ts * 1000).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    function left(ts) {
+        const s = ts - Date.now() / 1000;
+        if (s <= 0) return 'час вийшов';
+        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+        return h ? `${h} год ${m} хв` : `${m} хв`;
+    }
+    const ratingHtml = u => u.rating ? `<span class="stars">★</span> ${u.rating.toFixed(1)} <span class="muted">(${u.reviews})</span>` : '<span class="muted">Новий продавець</span>';
+    const initial = name => esc((name || '?').trim().charAt(0).toUpperCase());
+    const haptic = (t = 'light') => { try { tg.HapticFeedback.impactOccurred(t); } catch (e) {} };
+    const notifyHaptic = t => { try { tg.HapticFeedback.notificationOccurred(t); } catch (e) {} };
+
+    async function api(path, body) {
+        const res = await fetch(API_URL + path, {
+            method: body ? 'POST' : 'GET',
+            headers: { 'Authorization': 'tma ' + (tg ? tg.initData : ''), 'Content-Type': 'application/json' },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        let data;
+        try { data = await res.json(); } catch (e) { throw new Error('Сервер недоступний, спробуй пізніше'); }
+        if (!data.ok) throw new Error(data.error || 'Помилка');
+        return data.data;
+    }
+
+    function toast(text, isError) {
+        const t = document.createElement('div');
+        t.className = 'toast' + (isError ? ' error' : '');
+        t.textContent = text;
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2600);
+        if (isError) notifyHaptic('error');
+    }
+
+    function confirmBox(text) {
+        return new Promise(resolve => {
+            try { if (tg && tg.isVersionAtLeast('6.2')) return tg.showConfirm(text, ok => resolve(ok)); } catch (e) {}
+            resolve(window.confirm(text));
+        });
+    }
+
+    async function run(btn, fn) {
+        if (btn) { if (btn.disabled) return; btn.disabled = true; }
+        try { await fn(); } catch (e) { toast(e.message, true); } finally { if (btn) btn.disabled = false; }
+    }
+
+    function feeFor(price) {
+        let fee = Math.round(price * CFG.commission_percent / 100);
+        fee = Math.max(fee, CFG.min_commission);
+        return Math.min(fee, price);
+    }
+
+    function parseMoney(str) {
+        const v = parseFloat(String(str || '').replace(',', '.').replace(/\s/g, ''));
+        return isFinite(v) && v > 0 ? Math.round(v * 100) : 0;
+    }
+
+    async function refreshMe() {
+        const d = await api('/api/me');
+        ME = d.user; CFG = d.config;
+        const hb = document.getElementById('hdrBalance');
+        hb.textContent = uah(ME.balance);
+        hb.style.display = 'block';
+        return ME;
+    }
+
+    // ---------------------------------------------------------------- навігація
+    const ROOTS = { market: 'projects', deals: 'deals', sell: 'sell', profile: 'profile' };
+
+    function setTab(tab) {
+        haptic();
+        state.tab = tab;
+        state.stack = [{ name: ROOTS[tab], params: {} }];
+        render();
+    }
+    function go(name, params = {}) { haptic(); state.stack.push({ name, params }); render(); }
+    function back() {
+        if (document.getElementById('sheet').classList.contains('active')) return closeSheet();
+        if (state.stack.length > 1) { state.stack.pop(); render(); }
+    }
+    function replace(name, params = {}) { state.stack[state.stack.length - 1] = { name, params }; render(); }
+    function setTitle(t) { document.getElementById('mainTitle').textContent = t; }
+
+    async function render() {
+        stopPolling();
+        const seq = ++renderSeq;
+        const cur = state.stack[state.stack.length - 1];
+        const canBack = state.stack.length > 1;
+        document.getElementById('backBtn').style.display = canBack && !tg?.initData ? 'block' : 'none';
+        try { canBack ? tg.BackButton.show() : tg.BackButton.hide(); } catch (e) {}
+        document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === state.tab));
+        $main.innerHTML = '<div class="loader"></div>';
+        try {
+            const view = await VIEWS[cur.name](cur.params);
+            if (seq !== renderSeq) return;
+            $main.innerHTML = view.html;
+            window.scrollTo(0, 0);
+            if (view.after) view.after();
+        } catch (e) {
+            if (seq !== renderSeq) return;
+            $main.innerHTML = `<div class="empty">⚠️ ${esc(e.message)}<br><br><button class="btn small secondary" onclick="render()">Спробувати ще</button></div>`;
+        }
+    }
+    function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
+    // ---------------------------------------------------------------- bottom sheet
+    function openSheet(html) {
+        const s = document.getElementById('sheet');
+        s.innerHTML = html;
+        s.classList.add('active');
+        document.getElementById('backdrop').classList.add('active');
+        try { tg.BackButton.show(); } catch (e) {}
+        haptic('medium');
+    }
+    function closeSheet() {
+        document.getElementById('sheet').classList.remove('active');
+        document.getElementById('backdrop').classList.remove('active');
+        try { if (state.stack.length <= 1) tg.BackButton.hide(); } catch (e) {}
+    }
+
+    // ================================================================ VIEWS
+    const VIEWS = {};
+
+    // ---------- Вибір проєкту
+    VIEWS.projects = async () => {
+        setTitle('Обери проєкт');
+        const cards = CFG.projects.map(p => `
+            <div class="project-card" data-project="${esc(p.id)}">
+                <img src="${esc(p.img)}" alt="" onerror="this.outerHTML='<div class=&quot;emoji&quot;>${p.emoji}</div>'">
+                <span>${esc(p.id)}</span>
+            </div>`).join('');
+        return {
+            html: `
+                <div class="hero"><b>🛡 Безпечні угоди</b>Гроші продавцю — тільки після того, як ти отримав товар. Якщо щось не так — повернемо.
+                <a onclick="showRules()">Як це працює →</a></div>
+                <div class="projects-grid">${cards}</div>`,
+            after() {
+                document.querySelectorAll('.project-card').forEach(c => c.onclick = () => {
+                    state.project = c.dataset.project;
+                    go('listings', { project: c.dataset.project });
+                });
+            },
+        };
+    };
+
+    // ---------- Стрічка оголошень
+    function listingCard(l) {
+        const img = l.image ? `<img src="${esc(media(l.image))}" class="listing-img" loading="lazy">`
+                            : `<div class="listing-img ph">${CAT_EMOJI[l.category] || '📦'}</div>`;
+        const badges = (l.top ? '<div class="top-badge">ТОП</div>' : '') + (l.vip ? '<div class="vip-badge">VIP</div>' : '');
+        return `
+            <div class="listing-card${l.vip ? ' vip' : ''}" onclick="go('listing', {id: ${l.id}})">
+                <div class="badges">${badges}</div>
+                ${img}
+                <div class="listing-info">
+                    <h3 class="listing-title">${esc(l.title)}</h3>
+                    ${l.seller ? `<div class="listing-seller">${esc(l.seller.name)} · ${l.seller.rating ? '★ ' + l.seller.rating.toFixed(1) : 'новий'}</div>` : ''}
+                    <div class="listing-price">${uah(l.price)}</div>
+                </div>
+            </div>`;
+    }
+
+    VIEWS.listings = async ({ project }) => {
+        setTitle(project);
+        feed = { project, category: '', q: '', sort: 'new', offset: 0 };
+        const chips = [['', 'Всі'], ...Object.entries(CFG.categories)]
+            .map(([k, v]) => `<div class="filter-chip${k === '' ? ' active' : ''}" data-cat="${k}">${esc(v)}</div>`).join('');
+        return {
+            html: `
+                <div class="row search">
+                    <input id="q" type="search" placeholder="🔍 Пошук: вірти, акаунт, будинок…" class="grow">
+                    <select id="sort" style="width:auto">
+                        <option value="new">Нові</option><option value="cheap">Дешевші</option><option value="expensive">Дорожчі</option>
+                    </select>
+                </div>
+                <div class="filters">${chips}</div>
+                <div class="listings-grid" id="grid"></div>
+                <div id="more"></div>`,
+            after() {
+                document.querySelectorAll('.filter-chip').forEach(chip => chip.onclick = () => {
+                    document.querySelector('.filter-chip.active').classList.remove('active');
+                    chip.classList.add('active');
+                    feed.category = chip.dataset.cat;
+                    loadFeed(true);
+                });
+                let timer;
+                document.getElementById('q').oninput = e => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => { feed.q = e.target.value; loadFeed(true); }, 350);
+                };
+                document.getElementById('sort').onchange = e => { feed.sort = e.target.value; loadFeed(true); };
+                loadFeed(true);
+            },
+        };
+    };
+
+    async function loadFeed(reset) {
+        const grid = document.getElementById('grid'), more = document.getElementById('more');
+        if (!grid) return;
+        const seq = renderSeq;
+        if (reset) { feed.offset = 0; grid.innerHTML = ''; more.innerHTML = '<div class="loader"></div>'; }
+        const p = new URLSearchParams({ project: feed.project, category: feed.category, q: feed.q, sort: feed.sort, offset: feed.offset });
+        try {
+            const d = await api('/api/listings?' + p);
+            if (seq !== renderSeq) return;
+            grid.insertAdjacentHTML('beforeend', d.items.map(listingCard).join(''));
+            feed.offset += d.items.length;
+            if (!feed.offset) {
+                more.innerHTML = `<div class="empty">Тут поки порожньо 🤷<br>Стань першим продавцем у ${esc(feed.project)}!<br><br>
+                    <button class="btn small" onclick="setTab('sell')">＋ Додати оголошення</button></div>`;
+            } else {
+                more.innerHTML = d.more ? '<br><button class="btn secondary" onclick="loadFeed(false)">Показати ще</button>' : '';
+            }
+        } catch (e) { more.innerHTML = `<div class="empty">⚠️ ${esc(e.message)}</div>`; }
+    }
+
+    // ---------- Сторінка оголошення
+    VIEWS.listing = async ({ id }) => {
+        const { listing: l, reviews } = await api('/api/listings/' + id);
+        setTitle(l.project);
+        const img = l.image ? `<img src="${esc(media(l.image))}" class="detail-img">`
+                            : `<div class="detail-img ph">${CAT_EMOJI[l.category] || '📦'}</div>`;
+        const s = l.seller;
+        const revHtml = reviews.length ? reviews.map(r => `
+            <div class="review"><div class="row between"><b>${esc(r.author)}</b><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></div>
+            ${r.text ? `<div style="margin-top:4px">${esc(r.text)}</div>` : ''}</div>`).join('') : '<div class="muted">Відгуків поки немає</div>';
+
+        let actions;
+        if (l.is_mine) {
+            actions = `
+                <div class="btns" style="margin-bottom:8px">
+                    <button class="btn gold" onclick="openPromo(${l.id})">🚀 Просунути</button>
+                    <button class="btn secondary" onclick="go('sell', {edit: ${l.id}})">✏️ Редагувати</button>
+                </div>
+                <div class="btns">
+                    <button class="btn secondary" onclick="listingAction(this, ${l.id}, '${l.status === 'active' ? 'hide' : 'show'}')">${l.status === 'active' ? '🙈 Приховати' : '👁 Показати'}</button>
+                    <button class="btn red" onclick="listingAction(this, ${l.id}, 'delete')">🗑 Видалити</button>
+                </div>`;
+        } else if (l.qty > 0 && l.status === 'active') {
+            actions = `<div class="sticky-bottom"><button class="btn green" id="buyBtn">🔒 Купити безпечно за ${uah(l.price)}</button>
+                <div class="safe-note">Гроші заморозяться і підуть продавцю лише після твого підтвердження</div></div>`;
+        } else {
+            actions = '<div class="empty">Товар уже продано</div>';
+        }
+        return {
+            html: `
+                ${img}
+                <div class="row" style="gap:6px;margin-bottom:8px">${l.top ? '<span class="top-badge">ТОП</span>' : ''}${l.vip ? '<span class="vip-badge">VIP</span>' : ''}</div>
+                <h2 class="detail-title">${esc(l.title)}</h2>
+                <div class="detail-price">${uah(l.price)}</div>
+                <div class="muted" style="margin-bottom:14px">${esc(CFG.categories[l.category])} · в наявності: ${l.qty} · 👁 ${l.views}</div>
+                ${l.description ? `<div class="card desc">${esc(l.description)}</div>` : ''}
+                <div class="card row" onclick="go('user', {id: ${s.id}})" style="cursor:pointer">
+                    <div class="avatar">${initial(s.name)}</div>
+                    <div class="grow"><b>${esc(s.name)}</b><div class="muted">${ratingHtml(s)} · угод: ${s.deals}</div></div>
+                    <span class="muted">›</span>
+                </div>
+                ${actions}
+                <div class="section-title">Відгуки про продавця</div>
+                <div class="card">${revHtml}</div>
+                ${!l.is_mine ? `<div style="text-align:center;margin:14px 0"><a class="muted" onclick="openReport(${l.id})">🚩 Поскаржитись</a></div>` : ''}`,
+            after() {
+                const b = document.getElementById('buyBtn');
+                if (b) b.onclick = () => openBuy(l);
+            },
+        };
+    };
+
+    async function listingAction(btn, id, action) {
+        if (action === 'delete' && !(await confirmBox('Видалити оголошення назавжди?'))) return;
+        run(btn, async () => {
+            await api('/api/listings/' + id, { action });
+            toast(action === 'delete' ? 'Видалено' : 'Готово');
+            if (action === 'delete') back(); else render();
+        });
+    }
+
+    // ---------- Купівля
+    function openBuy(l) {
+        const id = l.id, price = l.price;
+        const enough = ME.balance >= price;
+        const need = price - ME.balance;
+        openSheet(`
+            <h3>🔒 Безпечна покупка</h3>
+            <div class="card"><b>${esc(l.title)}</b><div class="row between" style="margin-top:8px"><span class="muted">До оплати</span><b>${uah(price)}</b></div>
+            <div class="row between" style="margin-top:6px"><span class="muted">Твій баланс</span><b>${uah(ME.balance)}</b></div></div>
+            <div class="muted" style="margin-bottom:14px;line-height:1.5">
+            1. Гроші заморозяться на платформі.<br>2. Продавець передасть товар у грі (до ${CFG.delivery_hours} год).<br>
+            3. Ти перевіряєш і натискаєш «Отримав». Не передав — гроші повернуться автоматично.</div>
+            ${enough ? `<button class="btn green" id="payBtn">Оплатити ${uah(price)}</button>`
+                     : `<div class="fee-box" style="background:rgba(239,68,68,.1)">Не вистачає <b>${uah(need)}</b></div>
+                        <button class="btn" onclick="openTopup(${Math.max(need, CFG.min_topup)})">💳 Поповнити баланс</button>`}
+            <button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
+        const b = document.getElementById('payBtn');
+        if (b) b.onclick = () => run(b, async () => {
+            const d = await api(`/api/listings/${id}/buy`, {});
+            notifyHaptic('success');
+            closeSheet();
+            await refreshMe();
+            toast('Оплачено! Чекай передачу товару');
+            state.tab = 'deals';
+            state.stack = [{ name: 'deals', params: { role: 'buyer' } }, { name: 'deal', params: { id: d.deal_id } }];
+            render();
+        });
+    }
+
+    function openReport(id) {
+        openSheet(`<h3>🚩 Скарга</h3>
+            <label class="field"><span>Що не так з оголошенням?</span><textarea id="repText" placeholder="Шахрай, заборонений товар, обман…"></textarea></label>
+            <button class="btn red" id="repBtn">Надіслати</button><button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
+        const b = document.getElementById('repBtn');
+        b.onclick = () => run(b, async () => {
+            await api(`/api/listings/${id}/report`, { reason: document.getElementById('repText').value });
+            closeSheet(); toast('Скаргу надіслано модераторам');
+        });
+    }
+
+    // ---------- Продати / редагувати
+    VIEWS.sell = async ({ edit }) => {
+        let l = null;
+        if (edit) l = (await api('/api/listings/' + edit)).listing;
+        setTitle(l ? 'Редагування' : 'Нове оголошення');
+        const proj = l ? l.project : (state.project || CFG.projects[0].id);
+        const projOpts = CFG.projects.map(p => `<option ${p.id === proj ? 'selected' : ''}>${esc(p.id)}</option>`).join('');
+        const cat = l ? l.category : 'currency';
+        const cats = Object.entries(CFG.categories).map(([k, v]) => `<div class="filter-chip${k === cat ? ' active' : ''}" data-cat="${k}">${esc(v)}</div>`).join('');
+        let imageData = null, removeImage = false;
+        return {
+            html: `
+                <label class="field"><span>Проєкт</span><select id="fProject">${projOpts}</select></label>
+                <label class="field"><span>Категорія</span></label>
+                <div class="filters" id="fCats" style="margin-top:-8px">${cats}</div>
+                <label class="field"><span>Назва</span><input id="fTitle" maxlength="80" placeholder="Напр. 10 млн віртів (чисті, без бану)" value="${esc(l?.title || '')}"></label>
+                <label class="field"><span>Опис</span><textarea id="fDesc" maxlength="1500" placeholder="Сервер, деталі, як передаватимеш товар…">${esc(l?.description || '')}</textarea></label>
+                <div class="row">
+                    <label class="field grow"><span>Ціна, ₴</span><input id="fPrice" inputmode="decimal" placeholder="450" value="${l ? l.price / 100 : ''}"></label>
+                    <label class="field" style="width:110px"><span>Кількість</span><input id="fQty" inputmode="numeric" value="${l ? l.qty : 1}"></label>
+                </div>
+                <div class="fee-box" id="feeBox">Вкажи ціну — покажемо, скільки отримаєш.</div>
+                <label class="field"><span>Фото (необов'язково)</span></label>
+                <div class="img-picker" id="imgPick">${l?.image ? `<img src="${esc(media(l.image))}">` : '📷 Додати фото'}</div>
+                ${l?.image ? '<div style="text-align:right;margin-top:6px"><a class="muted" id="rmImg">Прибрати фото</a></div>' : ''}
+                <input type="file" id="fFile" accept="image/*" style="display:none"><br>
+                <button class="btn" id="saveBtn">${l ? '💾 Зберегти' : '📢 Опублікувати'}</button>
+                <div class="safe-note">Оплата йде тільки через безпечну угоду. Контакти для оплати «напряму» в описі — бан.</div>`,
+            after() {
+                let category = cat;
+                document.querySelectorAll('#fCats .filter-chip').forEach(c => c.onclick = () => {
+                    document.querySelector('#fCats .filter-chip.active').classList.remove('active');
+                    c.classList.add('active'); category = c.dataset.cat;
+                });
+                const priceEl = document.getElementById('fPrice');
+                const upd = () => {
+                    const p = parseMoney(priceEl.value);
+                    document.getElementById('feeBox').innerHTML = p
+                        ? `Покупець платить <b>${uah(p)}</b> · комісія сервісу ${CFG.commission_percent}% (${uah(feeFor(p))}) · ти отримаєш <b>${uah(p - feeFor(p))}</b>`
+                        : 'Вкажи ціну — покажемо, скільки отримаєш.';
+                };
+                priceEl.oninput = upd; upd();
+                const file = document.getElementById('fFile');
+                document.getElementById('imgPick').onclick = () => file.click();
+                file.onchange = async () => {
+                    if (!file.files[0]) return;
+                    try {
+                        imageData = await compressImage(file.files[0]);
+                        document.getElementById('imgPick').innerHTML = `<img src="${imageData}">`;
+                    } catch (e) { toast(e.message, true); }
+                };
+                const rm = document.getElementById('rmImg');
+                if (rm) rm.onclick = () => { removeImage = true; imageData = null; document.getElementById('imgPick').innerHTML = '📷 Додати фото'; rm.remove(); };
+                const btn = document.getElementById('saveBtn');
+                btn.onclick = () => run(btn, async () => {
+                    const body = {
+                        project: document.getElementById('fProject').value, category,
+                        title: document.getElementById('fTitle').value, description: document.getElementById('fDesc').value,
+                        price: priceEl.value.replace(',', '.'), qty: document.getElementById('fQty').value,
+                        image: imageData, remove_image: removeImage,
+                    };
+                    if (l) {
+                        await api('/api/listings/' + l.id, { action: 'edit', ...body });
+                        toast('Збережено'); back();
+                    } else {
+                        const d = await api('/api/listings', body);
+                        notifyHaptic('success');
+                        toast('Оголошення опубліковано!');
+                        state.project = body.project;
+                        state.tab = 'market';
+                        state.stack = [{ name: 'projects', params: {} }, { name: 'listings', params: { project: body.project } }, { name: 'listing', params: { id: d.id } }];
+                        render();
+                        setTimeout(() => openPromo(d.id, true), 600);
+                    }
+                });
+            },
+        };
+    };
+
+    function compressImage(f, max = 1080, q = 0.82) {
+        return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => {
+                const im = new Image();
+                im.onload = () => {
+                    const k = Math.min(1, max / Math.max(im.width, im.height));
+                    const c = document.createElement('canvas');
+                    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+                    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+                    resolve(c.toDataURL('image/jpeg', q));
+                };
+                im.onerror = () => reject(new Error('Не вдалося прочитати фото'));
+                im.src = r.result;
+            };
+            r.onerror = () => reject(new Error('Не вдалося прочитати фото'));
+            r.readAsDataURL(f);
+        });
+    }
+
+    // ---------- Просування
+    function openPromo(id, afterCreate) {
+        const opts = Object.entries(CFG.promos).map(([k, p]) => `
+            <div class="promo-option">
+                <div class="promo-details"><h4>${esc(p.title)}</h4><p>${esc(p.desc)}</p></div>
+                <div class="promo-prices">
+                    <button class="pay-btn pay-uah" onclick="buyPromo(this, ${id}, '${k}', 'balance')">${uah(p.uah)}</button>
+                    <button class="pay-btn pay-stars" onclick="buyPromo(this, ${id}, '${k}', 'stars')">⭐ ${p.stars}</button>
+                </div>
+            </div>`).join('');
+        openSheet(`<h3>🚀 ${afterCreate ? 'Продай швидше!' : 'Просунути оголошення'}</h3>
+            ${afterCreate ? '<p class="muted" style="margin-top:-6px">VIP і ТОП-оголошення бачать першими — вони продаються в рази швидше.</p>' : ''}
+            ${opts}<p class="muted">₴ — списується з балансу · ⭐ — оплата Telegram Stars</p>
+            <button class="close-modal" onclick="closeSheet()">${afterCreate ? 'Пізніше' : 'Скасувати'}</button>`);
+    }
+
+    function buyPromo(btn, id, type, pay) {
+        run(btn, async () => {
+            if (pay === 'balance') {
+                const p = CFG.promos[type];
+                if (ME.balance < p.uah) { closeSheet(); return openTopup(Math.max(p.uah - ME.balance, CFG.min_topup)); }
+                if (!(await confirmBox(`${p.title} за ${uah(p.uah)} з балансу?`))) return;
+                await api('/api/promote', { listing_id: id, type, pay });
+                notifyHaptic('success'); closeSheet(); await refreshMe(); toast('Просування активовано 🚀'); render();
+            } else {
+                const d = await api('/api/promote', { listing_id: id, type, pay });
+                tg.openInvoice(d.invoice_link, status => {
+                    if (status === 'paid') { notifyHaptic('success'); closeSheet(); toast('Оплачено зірками ⭐'); setTimeout(render, 1500); }
+                    else if (status === 'failed') toast('Оплата не пройшла', true);
+                });
+            }
+        });
+    }
+
+    // ---------- Угоди
+    VIEWS.deals = async ({ role = 'buyer' }) => {
+        setTitle('Мої угоди');
+        const rows = await api('/api/deals?role=' + role);
+        const list = rows.length ? rows.map(d => `
+            <div class="card" onclick="go('deal', {id: ${d.id}})" style="cursor:pointer">
+                <div class="row between"><b class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.title)}</b>
+                <span class="status ${STATUS[d.status][1]}">${STATUS[d.status][0]}</span></div>
+                <div class="row between muted" style="margin-top:6px"><span>#${d.id} · ${esc(d.project)} · ${role === 'buyer' ? 'продавець' : 'покупець'} ${esc(d.other_name)}</span>
+                <b style="color:var(--text-color)">${uah(role === 'buyer' ? d.amount : d.amount - d.fee)}</b></div>
+                ${['paid', 'delivered'].includes(d.status) && d.deadline_at ? `<div class="muted" style="margin-top:4px">⏱ ${left(d.deadline_at)}</div>` : ''}
+            </div>`).join('') : `<div class="empty">${role === 'buyer' ? 'Ти ще нічого не купував' : 'Продажів поки немає'}</div>`;
+        return {
+            html: `<div class="seg"><button class="${role === 'buyer' ? 'active' : ''}" onclick="replace('deals', {role: 'buyer'})">🛒 Купую</button>
+                   <button class="${role === 'seller' ? 'active' : ''}" onclick="replace('deals', {role: 'seller'})">🏷 Продаю</button></div>${list}`,
+        };
+    };
+
+    VIEWS.deal = async ({ id }) => {
+        const D = await api('/api/deals/' + id);
+        const d = D.deal, role = D.role;
+        setTitle('Угода #' + d.id);
+        const other = role === 'buyer' ? D.seller : D.buyer;
+        const st = d.status;
+        const stepDone = { paid: 1, delivered: 2, dispute: 1, completed: 3, refunded: 1 }[st];
+        const steps = ['Оплачено', 'Передано', 'Завершено'].map((s, i) =>
+            `<div class="step ${i < stepDone ? 'done' : ''}"><i>${i < stepDone ? '✓' : i + 1}</i>${s}</div>`).join('');
+
+        let hint = '', actions = '';
+        if (role === 'seller') {
+            if (st === 'paid') {
+                hint = `Покупець оплатив. Передай товар у грі і натисни «Передав». Залишилось: <b>${left(d.deadline_at)}</b>`;
+                actions = `<button class="btn green" onclick="dealAction(this, ${d.id}, 'deliver')">📦 Я передав товар</button>
+                           <div class="btns" style="margin-top:8px"><button class="btn red" onclick="dealAction(this, ${d.id}, 'cancel')">Скасувати і повернути гроші</button></div>`;
+            } else if (st === 'delivered') {
+                hint = `Чекаємо підтвердження від покупця. Автозакриття на твою користь через <b>${left(d.deadline_at)}</b>`;
+                actions = `<button class="btn secondary" onclick="openDispute(${d.id})">⚖️ Відкрити спір</button>`;
+            }
+        } else if (role === 'buyer') {
+            if (st === 'paid') {
+                hint = `Гроші заморожені. Продавець має передати товар — залишилось <b>${left(d.deadline_at)}</b>, інакше гроші повернуться.`;
+                actions = `<div class="btns"><button class="btn green" onclick="dealAction(this, ${d.id}, 'confirm')">✅ Отримав</button>
+                           <button class="btn red" onclick="openDispute(${d.id})">⚖️ Спір</button></div>`;
+            } else if (st === 'delivered') {
+                hint = `Продавець передав товар. Перевір у грі! Якщо все ок — натисни «Отримав». Автозакриття через <b>${left(d.deadline_at)}</b>.`;
+                actions = `<button class="btn green" onclick="dealAction(this, ${d.id}, 'confirm')">✅ Отримав, все ок</button>
+                           <button class="btn red" style="margin-top:8px" onclick="openDispute(${d.id})">⚖️ Є проблема — відкрити спір</button>`;
+            }
+        }
+        if (st === 'dispute') hint = `⚖️ Йде спір: «${esc(d.dispute_reason)}». Гроші заморожені, адміністратор вирішить за перепискою нижче. Додай докази.`;
+        if (st === 'completed') hint = role === 'seller' ? `Угоду завершено. Тобі зараховано <b>${uah(d.payout)}</b>.` : 'Угоду завершено.';
+        if (st === 'refunded') hint = 'Угоду скасовано, гроші повернуто покупцю.';
+
+        let reviewHtml = '';
+        if (D.can_review) {
+            reviewHtml = `<div class="card"><b>Оціни продавця</b><div class="rating-pick" id="rPick" style="margin-top:8px">${[1, 2, 3, 4, 5].map(i => `<span data-v="${i}">★</span>`).join('')}</div>
+                <textarea id="rText" placeholder="Як пройшла угода?" style="min-height:60px"></textarea>
+                <button class="btn" id="rBtn" style="margin-top:8px">Залишити відгук</button></div>`;
+        } else if (D.review) {
+            reviewHtml = `<div class="card"><span class="stars">${'★'.repeat(D.review.rating)}</span> ${esc(D.review.text)}</div>`;
+        }
+        const myId = ME.id;
+        const msgHtml = m => {
+            if (m.sender_id === 0) return `<div class="msg sys">${esc(m.text)}</div>`;
+            if (m.sender_id === myId) return `<div class="msg me">${esc(m.text)}<small>${date(m.created_at)}</small></div>`;
+            if (m.sender_id !== d.buyer_id && m.sender_id !== d.seller_id) return `<div class="msg admin">🛡 <b>Адміністрація:</b> ${esc(m.text)}<small>${date(m.created_at)}</small></div>`;
+            return `<div class="msg other">${esc(m.text)}<small>${date(m.created_at)}</small></div>`;
+        };
+        let lastId = D.messages.length ? D.messages[D.messages.length - 1].id : 0;
+
+        return {
+            html: `
+                <div class="card">
+                    <div class="row between"><b class="grow">${esc(d.title)}</b><span class="status ${STATUS[st][1]}">${STATUS[st][0]}</span></div>
+                    <div class="muted" style="margin-top:6px">${esc(d.project)} · ${role === 'buyer' ? 'Продавець' : role === 'seller' ? 'Покупець' : 'Учасники'}:
+                        ${role === 'admin' ? esc(D.buyer.name) + ' → ' + esc(D.seller.name) : `<a onclick="go('user', {id: ${other.id}})">${esc(other.name)}</a>`}</div>
+                    <div class="row between" style="margin-top:10px"><span class="muted">Сума</span><b>${uah(d.amount)}</b></div>
+                    ${role !== 'buyer' ? `<div class="row between" style="margin-top:4px"><span class="muted">Комісія сервісу</span><span>−${uah(d.fee)}</span></div>
+                    <div class="row between" style="margin-top:4px"><span class="muted">Продавець отримає</span><b style="color:var(--green)">${uah(d.payout)}</b></div>` : ''}
+                    <div class="steps">${steps}</div>
+                </div>
+                ${hint ? `<div class="hero" style="margin-bottom:12px">${hint}</div>` : ''}
+                ${actions ? `<div style="margin-bottom:14px">${actions}</div>` : ''}
+                ${reviewHtml}
+                <div class="section-title">💬 Чат угоди</div>
+                <div class="card">
+                    <div class="chat" id="chat">${D.messages.map(msgHtml).join('')}</div>
+                    <div class="chat-input"><input id="chatIn" maxlength="1000" placeholder="Повідомлення…"><button class="btn" id="chatBtn">➤</button></div>
+                    <div class="safe-note">Не переходь в особисті та не плати напряму — інакше ми не зможемо допомогти у спорі.</div>
+                </div>`,
+            after() {
+                const chat = document.getElementById('chat');
+                chat.scrollTop = chat.scrollHeight;
+                const input = document.getElementById('chatIn'), btn = document.getElementById('chatBtn');
+                const send = () => run(btn, async () => {
+                    const text = input.value.trim();
+                    if (!text) return;
+                    await api(`/api/deals/${d.id}/message`, { text });
+                    input.value = '';
+                    await pull();
+                });
+                btn.onclick = send;
+                input.onkeydown = e => { if (e.key === 'Enter') send(); };
+                const seq = renderSeq;
+                const pull = async () => {
+                    const r = await api(`/api/deals/${d.id}?after=${lastId}`);
+                    if (seq !== renderSeq) return;
+                    if (r.messages.length) {
+                        const atBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 60;
+                        chat.insertAdjacentHTML('beforeend', r.messages.map(msgHtml).join(''));
+                        lastId = r.messages[r.messages.length - 1].id;
+                        if (atBottom) chat.scrollTop = chat.scrollHeight;
+                    }
+                    if (r.status !== st && input.value === '') render();
+                };
+                pollTimer = setInterval(() => pull().catch(() => {}), 4000);
+
+                const pick = document.getElementById('rPick');
+                if (pick) {
+                    let rating = 5;
+                    const paint = () => pick.querySelectorAll('span').forEach(s => s.classList.toggle('on', +s.dataset.v <= rating));
+                    pick.querySelectorAll('span').forEach(s => s.onclick = () => { rating = +s.dataset.v; paint(); haptic(); });
+                    paint();
+                    const rb = document.getElementById('rBtn');
+                    rb.onclick = () => run(rb, async () => {
+                        await api(`/api/deals/${d.id}/action`, { action: 'review', rating, text: document.getElementById('rText').value });
+                        toast('Дякуємо за відгук!'); render();
+                    });
+                }
+            },
+        };
+    };
+
+    async function dealAction(btn, id, action) {
+        const q = {
+            deliver: 'Підтверджуєш, що вже передав товар покупцю в грі?',
+            confirm: 'Підтверджуєш, що отримав товар? Гроші одразу підуть продавцю, повернути їх буде неможливо.',
+            cancel: 'Скасувати угоду? Гроші повернуться покупцю.',
+        }[action];
+        if (q && !(await confirmBox(q))) return;
+        run(btn, async () => {
+            await api(`/api/deals/${id}/action`, { action });
+            notifyHaptic('success');
+            await refreshMe();
+            render();
+        });
+    }
+
+    function openDispute(id) {
+        openSheet(`<h3>⚖️ Відкрити спір</h3>
+            <p class="muted">Гроші залишаться замороженими, поки адміністратор не розбереться. Опиши проблему і додай докази в чат угоди.</p>
+            <label class="field"><span>Що сталося?</span><textarea id="dispText" placeholder="Напр.: продавець не передав вірти, хоча натиснув «Передав»"></textarea></label>
+            <button class="btn red" id="dispBtn">Відкрити спір</button><button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
+        const b = document.getElementById('dispBtn');
+        b.onclick = () => run(b, async () => {
+            await api(`/api/deals/${id}/action`, { action: 'dispute', reason: document.getElementById('dispText').value });
+            closeSheet(); toast('Спір відкрито, адміністратор уже отримав сповіщення'); render();
+        });
+    }
+
+    // ---------- Профіль
+    VIEWS.profile = async () => {
+        setTitle('Профіль');
+        await refreshMe();
+        const [w, mine] = await Promise.all([api('/api/wallet'), api('/api/listings/my')]);
+        const myHtml = mine.length ? mine.map(l => `
+            <div class="card my-listing">
+                ${l.image ? `<img src="${esc(media(l.image))}">` : `<div class="ph">${CAT_EMOJI[l.category] || '📦'}</div>`}
+                <div class="grow" onclick="go('listing', {id: ${l.id}})" style="cursor:pointer">
+                    <b style="font-size:14px">${esc(l.title)}</b>
+                    <div class="muted">${uah(l.price)} · ${esc(l.project)} · 👁 ${l.views}${l.status === 'hidden' ? ' · 🙈 приховано' : ''}${l.qty <= 0 ? ' · продано' : ''}</div>
+                    <div class="muted">${l.top ? '📌 ТОП до ' + date(l.top_until) + ' ' : ''}${l.vip ? '👑 VIP до ' + date(l.vip_until) : ''}</div>
+                </div>
+                <button class="btn small gold" onclick="openPromo(${l.id})">🚀</button>
+            </div>`).join('') : '<div class="empty">У тебе ще немає оголошень<br><br><button class="btn small" onclick="setTab(\'sell\')">＋ Продати щось</button></div>';
+        const ledger = w.ledger.length ? w.ledger.map(x => `
+            <div class="ledger-row"><div><div>${LEDGER[x.kind] || x.kind}</div><div class="muted">${date(x.created_at)}</div></div>
+            <div class="${x.delta > 0 ? 'plus' : 'minus'}">${x.delta > 0 ? '+' : '−'}${uah(Math.abs(x.delta))}</div></div>`).join('') : '<div class="muted">Операцій ще не було</div>';
+        const wds = w.withdrawals.filter(x => x.status === 'pending').map(x => `<div class="fee-box">⏳ Заявка на виведення #${x.id} на ${uah(x.amount)} в обробці</div>`).join('');
+        return {
+            html: `
+                <div class="row" style="margin-bottom:16px">
+                    <div class="avatar big">${initial(ME.name)}</div>
+                    <div class="grow"><div style="font-size:18px;font-weight:700">${esc(ME.name)}</div>
+                    <div class="muted">${ratingHtml(ME)} · угод: ${ME.deals}</div>
+                    <a class="muted" onclick="go('user', {id: ${ME.id}})">Мій публічний профіль ›</a></div>
+                </div>
+                ${ME.banned ? '<div class="fee-box" style="background:rgba(239,68,68,.15)">🚫 Акаунт заблоковано адміністрацією</div>' : ''}
+                <div class="wallet">
+                    <div style="opacity:.85;font-size:13px">Баланс</div>
+                    <div class="sum">${uah(w.balance)}</div>
+                    <div class="sub"><span>🔒 В угодах: ${uah(w.held)}</span><span>⏳ Очікується: ${uah(w.incoming)}</span></div>
+                    <div class="btns"><button class="btn" onclick="openTopup()">💳 Поповнити</button><button class="btn" onclick="openWithdraw()">💸 Вивести</button></div>
+                </div>
+                ${wds}
+                <div class="section-title">📢 Мої оголошення (${mine.length})</div>
+                ${myHtml}
+                <div class="section-title">🧾 Історія операцій</div>
+                <div class="card">${ledger}</div>
+                <div class="btns" style="margin-top:10px"><button class="btn secondary" onclick="showRules()">🛡 Правила угод</button></div>`,
+        };
+    };
+
+    VIEWS.user = async ({ id }) => {
+        const d = await api('/api/users/' + id);
+        const u = d.user;
+        setTitle(u.name);
+        const revs = d.reviews.length ? d.reviews.map(r => `
+            <div class="review"><div class="row between"><b>${esc(r.author)}</b><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></div>
+            ${r.text ? `<div style="margin-top:4px">${esc(r.text)}</div>` : ''}<div class="muted">${date(r.created_at)}</div></div>`).join('') : '<div class="muted">Відгуків поки немає</div>';
+        return {
+            html: `
+                <div class="card row">
+                    <div class="avatar big">${initial(u.name)}</div>
+                    <div class="grow"><div style="font-size:18px;font-weight:700">${esc(u.name)}</div>
+                    <div class="muted">${ratingHtml(u)}</div><div class="muted">Угод: ${u.deals} · з ${new Date(u.since * 1000).toLocaleDateString('uk-UA')}</div></div>
+                </div>
+                ${d.banned ? '<div class="fee-box" style="background:rgba(239,68,68,.15)">🚫 Користувача заблоковано</div>' : ''}
+                <div class="section-title">Оголошення (${d.listings.length})</div>
+                ${d.listings.length ? `<div class="listings-grid">${d.listings.map(listingCard).join('')}</div>` : '<div class="muted">Немає активних оголошень</div>'}
+                <div class="section-title">Відгуки (${d.reviews.length})</div>
+                <div class="card">${revs}</div>`,
+        };
+    };
+
+    // ---------- Поповнення / виведення
+    function openTopup(suggest) {
+        if (!CFG.cryptopay) {
+            return openSheet(`<h3>💳 Поповнення</h3><p class="muted">Автоматичне поповнення поки не підключене. Напиши адміністратору в бота (/support).</p>
+                <button class="close-modal" onclick="closeSheet()">Закрити</button>`);
+        }
+        const val = suggest ? Math.ceil(suggest / 100) : '';
+        openSheet(`<h3>💳 Поповнити баланс</h3>
+            <label class="field"><span>Сума, ₴ (мін. ${uah(CFG.min_topup)})</span><input id="tAmount" inputmode="decimal" value="${val}" placeholder="500"></label>
+            <div class="presets">${[100, 250, 500, 1000].map(v => `<button class="btn small secondary" onclick="document.getElementById('tAmount').value=${v}">${v} ₴</button>`).join('')}</div>
+            <p class="muted">Оплата через @CryptoBot (USDT, TON). Рахунок у гривнях — бот сам порахує суму в криптовалюті. Баланс оновиться автоматично після оплати.</p>
+            <button class="btn" id="tBtn">Перейти до оплати</button>
+            <button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
+        const b = document.getElementById('tBtn');
+        b.onclick = () => run(b, async () => {
+            const d = await api('/api/topup', { amount: document.getElementById('tAmount').value.replace(',', '.') });
+            if (/^https:\/\/t\.me\//.test(d.url)) tg.openTelegramLink(d.url); else tg.openLink(d.url);
+            closeSheet();
+            watchBalance();
+        });
+    }
+
+    function watchBalance() {
+        const start = ME.balance;
+        let n = 0;
+        const t = setInterval(async () => {
+            if (++n > 36) return clearInterval(t);
+            try {
+                await refreshMe();
+                if (ME.balance > start) {
+                    clearInterval(t);
+                    notifyHaptic('success');
+                    toast('💰 Баланс поповнено: +' + uah(ME.balance - start));
+                    if (state.stack[state.stack.length - 1].name === 'profile') render();
+                }
+            } catch (e) {}
+        }, 5000);
+    }
+
+    function openWithdraw() {
+        const fee = CFG.withdraw_fee_percent;
+        openSheet(`<h3>💸 Вивести кошти</h3>
+            <div class="muted" style="margin-bottom:12px">Доступно: <b style="color:var(--text-color)">${uah(ME.balance)}</b> · мін. ${uah(CFG.min_withdraw)}${fee ? ` · комісія ${fee}%` : ''}</div>
+            <label class="field"><span>Сума, ₴</span><input id="wAmount" inputmode="decimal" placeholder="${ME.balance / 100}"></label>
+            <div class="radio">
+                ${CFG.cryptopay ? '<label><input type="radio" name="wm" value="cryptobot" checked><span>🤖 CryptoBot (USDT)</span></label>' : ''}
+                <label><input type="radio" name="wm" value="card" ${CFG.cryptopay ? '' : 'checked'}><span>💳 Картка</span></label>
+            </div>
+            <label class="field" id="wCardBox" style="display:${CFG.cryptopay ? 'none' : 'block'}"><span>Номер картки</span><input id="wCard" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000"></label>
+            <p class="muted">Заявку перевіряє адміністратор, зазвичай до 24 год.</p>
+            <button class="btn" id="wBtn">Створити заявку</button>
+            <button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
+        document.querySelectorAll('input[name=wm]').forEach(r => r.onchange = () => {
+            document.getElementById('wCardBox').style.display = r.value === 'card' && r.checked ? 'block' : 'none';
+        });
+        const b = document.getElementById('wBtn');
+        b.onclick = () => run(b, async () => {
+            const method = document.querySelector('input[name=wm]:checked').value;
+            await api('/api/withdraw', { amount: document.getElementById('wAmount').value.replace(',', '.'), method, details: document.getElementById('wCard').value });
+            closeSheet(); await refreshMe(); toast('Заявку створено ✅'); render();
+        });
+    }
+
+    function showRules() {
+        openSheet(`<h3>🛡 Як працює безпечна угода</h3>
+            <div class="desc" style="font-size:14px">1️⃣ Ти оплачуєш товар з балансу — гроші <b>заморожуються</b> платформою, продавець їх ще не бачить.
+2️⃣ Продавець передає товар у грі й натискає «Передав» (має на це ${CFG.delivery_hours} год, інакше гроші повертаються тобі автоматично).
+3️⃣ Ти перевіряєш і натискаєш «Отримав» — тільки тоді гроші йдуть продавцю.
+⚖️ Щось не так? Відкрий спір — адміністратор розбереться за чатом угоди.
+⏱ Якщо покупець не відповідає ${CFG.confirm_hours} год після передачі — угода закривається на користь продавця.
+
+❗ Ніколи не переходь в особисті та не плати напряму. Поза платформою ми не можемо захистити твої гроші.
+💼 Комісія сервісу — ${CFG.commission_percent}% з продавця, для покупця безкоштовно.</div>
+            <button class="close-modal" onclick="closeSheet()">Зрозуміло</button>`);
+    }
+
+    // ================================================================ старт
+    async function boot() {
+        if (!tg || !tg.initData) {
+            $main.innerHTML = '<div class="empty">🤖 Відкрий RP Market через Telegram-бота — так ми знаємо, що це саме ти, і захищаємо твої угоди.</div>';
+            document.getElementById('tabs').style.display = 'none';
+            return;
+        }
+        tg.ready();
+        tg.expand();
+        try { tg.setHeaderColor('secondary_bg_color'); } catch (e) {}
+        tg.BackButton.onClick(back);
+        try {
+            await refreshMe();
+        } catch (e) {
+            $main.innerHTML = `<div class="empty">⚠️ ${esc(e.message)}</div>`;
+            return;
+        }
+        // Діплінки: ?deal=12 / ?listing=5 або startapp=deal_12 / l_5
+        const qs = new URLSearchParams(location.search);
+        const sp = tg.initDataUnsafe.start_param || '';
+        const dealId = qs.get('deal') || (sp.startsWith('deal_') ? sp.slice(5) : null);
+        const listingId = qs.get('listing') || (sp.startsWith('l_') ? sp.slice(2) : null);
+        if (dealId && /^\d+$/.test(dealId)) {
+            state.tab = 'deals';
+            state.stack = [{ name: 'deals', params: {} }, { name: 'deal', params: { id: +dealId } }];
+            render();
+        } else if (listingId && /^\d+$/.test(listingId)) {
+            state.tab = 'market';
+            state.stack = [{ name: 'projects', params: {} }, { name: 'listing', params: { id: +listingId } }];
+            render();
+        } else {
+            setTab('market');
+        }
+    }
+    boot();
+    </script>
+</body>
+</html>
