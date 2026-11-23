@@ -1,1045 +1,1594 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RP Market</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: var(--tg-theme-bg-color, #121212);
-            --text-color: var(--tg-theme-text-color, #ffffff);
-            --hint-color: var(--tg-theme-hint-color, #a1a1aa);
-            --btn-color: var(--tg-theme-button-color, #3b82f6);
-            --btn-text: var(--tg-theme-button-text-color, #ffffff);
-            --card-bg: var(--tg-theme-secondary-bg-color, #1e1e1e);
-            --line: rgba(127,127,127,0.18);
-            --vip-color: #f59e0b;
-            --green: #10b981;
-            --red: #ef4444;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0 0 84px;
-        }
-        button { font-family: inherit; }
-        input, textarea, select {
-            font-family: inherit; font-size: 15px; color: var(--text-color);
-            background: var(--card-bg); border: 1px solid var(--line); border-radius: 10px;
-            padding: 11px 12px; width: 100%; outline: none;
-        }
-        input:focus, textarea:focus, select:focus { border-color: var(--btn-color); }
-        textarea { resize: vertical; min-height: 90px; }
-        label.field { display: block; margin-bottom: 14px; }
-        label.field > span { display: block; font-size: 13px; color: var(--hint-color); margin-bottom: 6px; }
-        a { color: var(--btn-color); cursor: pointer; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>RP Market</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --asphalt: #121722;
+    --s1: #1A2130;
+    --s2: #232C3E;
+    --s3: #2E3950;
+    --line: rgba(160, 175, 205, .13);
+    --text: #E8ECF3;
+    --muted: #8A94A7;
+    --plate: #F4F5F0;
+    --ink: #0E1014;
+    --ua: #1F4FBF;
+    --mark: #F2C230;
+    --green: #3FB97A;
+    --red: #E5484D;
+    --blue: #5B8CFF;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --spring: cubic-bezier(.34, 1.45, .5, 1);
+    --f-body: 'Golos Text', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --f-num: 'Barlow Condensed', 'Golos Text', system-ui, sans-serif;
+    --tabbar: 64px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: var(--asphalt); }
+body {
+    margin: 0; min-height: 100vh;
+    font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+    color: var(--text); background: var(--asphalt);
+    padding-bottom: calc(var(--tabbar) + var(--safe-b) + 16px);
+    -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input, textarea {
+    font: inherit; color: var(--text); width: 100%;
+    background: var(--s1); border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; outline: none; transition: border-color .2s, background .2s;
+}
+input::placeholder, textarea::placeholder { color: #5E687C; }
+input:focus, textarea:focus { border-color: var(--mark); background: var(--s2); }
+textarea { resize: none; min-height: 96px; line-height: 1.5; }
+:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+h1, h2, h3, h4, p { margin: 0; }
+img { display: block; }
 
-        header {
-            padding: 14px 16px; background-color: var(--card-bg);
-            position: sticky; top: 0; z-index: 100;
-            display: flex; align-items: center; gap: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-        }
-        .back-btn { display: none; background: none; border: none; color: var(--btn-color); font-size: 22px; cursor: pointer; padding: 0; }
-        .page-title { font-size: 18px; font-weight: 600; margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .header-balance { font-size: 13px; font-weight: 700; color: var(--green); background: rgba(16,185,129,.12); padding: 6px 10px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+/* ---------- іконки ---------- */
+.i { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.i--s { width: 16px; height: 16px; }
+.i--l { width: 24px; height: 24px; }
+.i--fill { fill: currentColor; stroke: none; }
 
-        main { padding: 16px; }
-        .loader { width: 32px; height: 32px; margin: 60px auto; border: 3px solid var(--line); border-top-color: var(--btn-color); border-radius: 50%; animation: spin .8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .empty { text-align: center; color: var(--hint-color); padding: 40px 10px; font-size: 14px; line-height: 1.5; }
-        .muted { color: var(--hint-color); font-size: 13px; }
-        .section-title { font-size: 16px; font-weight: 700; margin: 22px 0 10px; }
-        .card { background: var(--card-bg); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-        .row { display: flex; align-items: center; gap: 10px; }
-        .between { justify-content: space-between; }
-        .grow { flex: 1; min-width: 0; }
+/* ---------- номерний знак (ціна) ---------- */
+.plate {
+    display: inline-flex; align-items: stretch; flex-shrink: 0;
+    background: var(--plate); color: var(--ink);
+    border: 1.5px solid var(--ink); border-radius: 5px;
+    box-shadow: 0 0 0 1.5px var(--plate), 0 2px 8px rgba(0, 0, 0, .35);
+    font-family: var(--f-num); font-weight: 700; line-height: 1; overflow: hidden;
+    margin: 1.5px;
+}
+.plate > i {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    background: var(--ua); color: #fff; font-style: normal; font-size: 7px; font-weight: 600;
+    padding: 0 3px; letter-spacing: .02em;
+}
+.plate > i::before { content: ''; width: 9px; height: 6px; background: linear-gradient(#3B7BFF 50%, #FFD500 50%); border-radius: 1px; }
+.plate > b { padding: 4px 7px 3px; font-size: 18px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+.plate--vip { background: var(--mark); box-shadow: 0 0 0 1.5px var(--mark), 0 2px 10px rgba(242, 194, 48, .3); }
+.plate--l > b { font-size: 30px; padding: 6px 12px 5px; }
+.plate--l > i { font-size: 9px; padding: 0 5px; }
+.plate--l > i::before { width: 13px; height: 9px; }
+.plate--s > b { font-size: 15px; padding: 3px 5px 2px; }
+.plate--s > i { font-size: 6px; padding: 0 2px; }
+.plate--s > i::before { width: 7px; height: 5px; }
 
-        .btn { border: none; border-radius: 12px; padding: 13px 16px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; background: var(--btn-color); color: var(--btn-text); }
-        .btn:disabled { opacity: .5; }
-        .btn.secondary { background: rgba(127,127,127,.15); color: var(--text-color); }
-        .btn.green { background: var(--green); color: #fff; }
-        .btn.red { background: rgba(239,68,68,.15); color: var(--red); }
-        .btn.gold { background: var(--vip-color); color: #000; }
-        .btn.small { padding: 8px 12px; font-size: 13px; border-radius: 9px; width: auto; }
-        .btns { display: flex; gap: 8px; }
-        .btns .btn { flex: 1; }
-        .sticky-bottom { position: sticky; bottom: 76px; padding-top: 8px; z-index: 5; }
+/* ---------- шапка ---------- */
+.topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 10px;
+    height: 56px; padding: 0 16px;
+    background: rgba(18, 23, 34, .82);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-bottom: 1px solid transparent; transition: border-color .25s;
+}
+.topbar.scrolled { border-bottom-color: var(--line); }
+.topbar .back { display: none; width: 36px; height: 36px; margin-left: -8px; border-radius: 10px; align-items: center; justify-content: center; }
+.topbar .back.show { display: flex; }
+.topbar-title { flex: 1; min-width: 0; font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.logo { display: flex; align-items: center; gap: 7px; font-family: var(--f-num); font-size: 22px; font-weight: 600; letter-spacing: .01em; }
+.logo .plate > b { font-size: 16px; padding: 3px 5px 2px; }
+.bal-chip {
+    display: flex; align-items: center; gap: 6px; padding: 6px 11px 6px 9px;
+    background: var(--s1); border: 1px solid var(--line); border-radius: 20px;
+    font-family: var(--f-num); font-size: 17px; font-weight: 600; color: var(--text);
+    transition: transform .15s var(--ease);
+}
+.bal-chip .i { color: var(--mark); width: 17px; height: 17px; }
+.bal-chip:active { transform: scale(.94); }
+.bal-chip.bump { animation: bump .5s var(--spring); }
+@keyframes bump { 40% { transform: scale(1.12); } }
 
-        /* Банер довіри */
-        .hero { background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(16,185,129,.14)); border: 1px solid rgba(59,130,246,.25); border-radius: 14px; padding: 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.45; }
-        .hero b { font-size: 15px; display: block; margin-bottom: 4px; }
+main { padding: 12px 16px 0; overflow-x: clip; }
 
-        /* Projects Grid */
-        .projects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .project-card { background-color: var(--card-bg); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; border: 1px solid var(--line); transition: transform 0.1s; }
-        .project-card:active { transform: scale(0.95); }
-        .project-card img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px; }
-        .project-card .emoji { font-size: 52px; height: 80px; line-height: 80px; margin-bottom: 8px; }
-        .project-card span { font-weight: 600; font-size: 14px; }
+/* ---------- переходи між сторінками ---------- */
+.page { animation-duration: .32s; animation-timing-function: var(--ease); animation-fill-mode: backwards; }
+.enter-fwd { animation-name: inFwd; }
+.enter-back { animation-name: inBack; }
+.enter-fade { animation-name: inFade; animation-duration: .22s; }
+@keyframes inFwd { from { opacity: 0; transform: translateX(28px); } }
+@keyframes inBack { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes inFade { from { opacity: 0; } }
 
-        /* Пошук і фільтри */
-        .search { margin-bottom: 10px; }
-        .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
-        .filters::-webkit-scrollbar { display: none; }
-        .filter-chip { background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--line); padding: 8px 14px; border-radius: 20px; white-space: nowrap; font-size: 13px; cursor: pointer; }
-        .filter-chip.active { background-color: var(--btn-color); color: var(--btn-text); border-color: var(--btn-color); }
+/* ---------- кнопки ---------- */
+.btn {
+    position: relative; display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; min-height: 50px; padding: 0 18px; border-radius: 14px;
+    font-weight: 600; font-size: 15px; overflow: hidden;
+    transition: transform .15s var(--ease), opacity .2s, background .2s;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .5; pointer-events: none; }
+.btn--main { background: var(--mark); color: var(--ink); }
+.btn--main::after {
+    content: ''; position: absolute; inset: 0; transform: translateX(-120%);
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .45) 50%, transparent 70%);
+}
+.btn--main.shine::after { animation: shine 1.1s .4s var(--ease); }
+@keyframes shine { to { transform: translateX(120%); } }
+.btn--ghost { background: var(--s2); color: var(--text); }
+.btn--green { background: var(--green); color: #06170E; }
+.btn--danger { background: rgba(229, 72, 77, .12); color: #FF7A7E; }
+.btn--s { min-height: 38px; padding: 0 13px; border-radius: 11px; font-size: 14px; width: auto; }
+.btn.loading { color: transparent !important; }
+.btn.loading::before {
+    content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%;
+    border: 2.5px solid currentColor; border-color: var(--ink) transparent var(--ink) transparent;
+    animation: spin .7s linear infinite;
+}
+.btn--ghost.loading::before, .btn--danger.loading::before { border-color: var(--text) transparent var(--text) transparent; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.row-btns { display: flex; gap: 10px; }
+.row-btns > * { flex: 1; }
+.icon-btn { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--s1); border: 1px solid var(--line); transition: transform .15s var(--ease); }
+.icon-btn:active { transform: scale(.92); }
+.link { color: var(--mark); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; }
 
-        /* Listings Grid */
-        .listings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .listing-card { background-color: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; display: flex; flex-direction: column; cursor: pointer; border: 1px solid transparent; }
-        .listing-card:active { transform: scale(0.98); }
-        .listing-card.vip { border-color: var(--vip-color); box-shadow: 0 0 14px rgba(245,158,11,.18); }
-        .listing-card.vip .listing-title { color: var(--vip-color); }
-        .listing-img { width: 100%; height: 110px; background-color: #2a2a2a; object-fit: cover; display: block; }
-        .ph { display: flex; align-items: center; justify-content: center; font-size: 40px; background: linear-gradient(135deg, #2a2a2a, #1a1a2e); }
-        .badges { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; }
-        .vip-badge, .top-badge { font-size: 10px; font-weight: bold; padding: 4px 7px; border-radius: 6px; text-transform: uppercase; }
-        .vip-badge { background-color: var(--vip-color); color: #000; }
-        .top-badge { background-color: var(--btn-color); color: #fff; }
-        .listing-info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
-        .listing-title { font-size: 13px; margin: 0 0 6px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 500; }
-        .listing-seller { font-size: 11px; color: var(--hint-color); margin-bottom: 4px; }
-        .listing-price { font-size: 15px; font-weight: bold; color: var(--green); margin-top: auto; }
+/* ---------- загальне ---------- */
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.sec-title { display: flex; align-items: baseline; justify-content: space-between; margin: 26px 0 12px; font-size: 18px; font-weight: 700; }
+.sec-title small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.panel { background: var(--s1); border-radius: 18px; padding: 16px; }
+.panel + .panel { margin-top: 12px; }
+.empty { text-align: center; padding: 44px 20px; color: var(--muted); }
+.empty .i { width: 40px; height: 40px; stroke-width: 1.4; color: var(--s3); margin: 0 auto 12px; display: block; }
+.empty p { margin-bottom: 16px; max-width: 30ch; margin-inline: auto; }
+.stagger > * { animation: rise .42s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.fade { opacity: 0; transition: opacity .45s var(--ease); }
+.fade.ok { opacity: 1; }
 
-        /* Сторінка оголошення */
-        .detail-img { width: 100%; max-height: 280px; object-fit: cover; border-radius: 14px; display: block; margin-bottom: 14px; background: #2a2a2a; }
-        .detail-img.ph { height: 180px; font-size: 64px; }
-        .detail-title { font-size: 20px; font-weight: 700; margin: 0 0 6px; line-height: 1.3; }
-        .detail-price { font-size: 26px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
-        .desc { white-space: pre-wrap; word-break: break-word; line-height: 1.5; font-size: 14px; }
-        .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--btn-color); color: var(--btn-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
-        .avatar.big { width: 64px; height: 64px; font-size: 26px; }
-        .stars { color: var(--vip-color); }
-        .safe-note { font-size: 12px; color: var(--hint-color); text-align: center; margin-top: 8px; }
-        .review { border-top: 1px solid var(--line); padding: 10px 0; font-size: 14px; }
-        .review:first-child { border-top: none; }
+/* скелетони */
+.sk { background: linear-gradient(90deg, var(--s1) 0%, var(--s2) 50%, var(--s1) 100%); background-size: 200% 100%; animation: sk 1.2s linear infinite; border-radius: 10px; }
+@keyframes sk { to { background-position: -200% 0; } }
 
-        /* Форма */
-        .img-picker { border: 2px dashed var(--line); border-radius: 12px; height: 150px; display: flex; align-items: center; justify-content: center; color: var(--hint-color); cursor: pointer; overflow: hidden; position: relative; }
-        .img-picker img { width: 100%; height: 100%; object-fit: cover; }
-        .fee-box { background: rgba(16,185,129,.1); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; }
+/* ---------- головна ---------- */
+.safe {
+    display: flex; gap: 14px; align-items: center;
+    padding: 16px; border-radius: 20px; background: var(--s1); position: relative; overflow: hidden;
+}
+.safe::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: 0; height: 3px; background: repeating-linear-gradient(90deg, var(--mark) 0 16px, transparent 16px 30px); opacity: .55; }
+.safe svg.shield { width: 58px; height: 58px; flex-shrink: 0; }
+.shield path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.shield .s-body { stroke: var(--mark); stroke-width: 3; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.shield .s-check { stroke: var(--text); stroke-width: 3.4; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.shield .s-fill { fill: rgba(242, 194, 48, .1); stroke: none; }
+.shield.draw .s-body { animation: draw 1.1s .15s var(--ease) both; }
+.shield.draw .s-check { animation: draw .5s 1.1s var(--ease) both; }
+.shield.draw .s-fill { animation: inFade .6s 1.2s both; }
+@keyframes draw { from { stroke-dashoffset: 1; } }
+.safe h2 { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+.safe p { font-size: 13.5px; color: var(--muted); margin-bottom: 6px; line-height: 1.4; }
 
-        /* Угоди */
-        .seg { display: flex; background: var(--card-bg); border-radius: 12px; padding: 4px; margin-bottom: 14px; }
-        .seg button { flex: 1; border: none; background: none; color: var(--text-color); padding: 9px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .seg button.active { background: var(--btn-color); color: var(--btn-text); }
-        .status { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 20px; white-space: nowrap; }
-        .st-paid { background: rgba(59,130,246,.15); color: #60a5fa; }
-        .st-delivered { background: rgba(245,158,11,.15); color: var(--vip-color); }
-        .st-dispute { background: rgba(239,68,68,.15); color: var(--red); }
-        .st-completed { background: rgba(16,185,129,.15); color: var(--green); }
-        .st-refunded { background: rgba(127,127,127,.18); color: var(--hint-color); }
-        .steps { display: flex; justify-content: space-between; margin: 14px 0 4px; position: relative; }
-        .steps::before { content: ''; position: absolute; top: 13px; left: 12%; right: 12%; height: 2px; background: var(--line); }
-        .step { text-align: center; font-size: 11px; color: var(--hint-color); flex: 1; position: relative; }
-        .step i { display: flex; width: 28px; height: 28px; margin: 0 auto 4px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--line); align-items: center; justify-content: center; font-style: normal; font-size: 13px; }
-        .step.done { color: var(--text-color); }
-        .step.done i { background: var(--green); border-color: var(--green); color: #fff; }
+.projects { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.proj {
+    text-align: left; display: flex; flex-direction: column; gap: 10px;
+    background: var(--s1); border-radius: 20px; padding: 12px; border: 1px solid var(--line);
+    transition: transform .2s var(--ease), border-color .2s;
+}
+.proj:active { transform: scale(.96); border-color: var(--mark); }
+.proj-logo { aspect-ratio: 1.35; border-radius: 14px; background: radial-gradient(circle at 50% 40%, var(--s3), var(--asphalt) 75%); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.proj-logo img { width: 78%; height: 78%; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .5)); }
+.proj-logo .fallback { font-family: var(--f-num); font-size: 34px; font-weight: 700; color: var(--muted); }
+.proj b { font-size: 15px; font-weight: 600; padding: 0 4px; }
+.proj span { font-size: 12.5px; color: var(--muted); padding: 0 4px; margin-top: -8px; }
 
-        /* Чат */
-        .chat { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; overflow-y: auto; padding: 4px 0 8px; }
-        .msg { max-width: 82%; padding: 8px 11px; border-radius: 14px; font-size: 14px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
-        .msg small { display: block; font-size: 10px; opacity: .6; margin-top: 3px; }
-        .msg.me { align-self: flex-end; background: var(--btn-color); color: var(--btn-text); border-bottom-right-radius: 4px; }
-        .msg.other { align-self: flex-start; background: rgba(127,127,127,.15); border-bottom-left-radius: 4px; }
-        .msg.sys { align-self: center; max-width: 95%; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); font-size: 12px; text-align: center; color: var(--hint-color); }
-        .msg.admin { align-self: center; background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3); }
-        .chat-input { display: flex; gap: 8px; }
-        .chat-input input { flex: 1; }
-        .chat-input button { width: auto; padding: 0 16px; }
+/* ---------- стрічка ---------- */
+.filterbar { position: sticky; top: 56px; z-index: 20; background: var(--asphalt); margin: -12px -16px 0; padding: 10px 16px 0; }
+.search { position: relative; display: flex; gap: 8px; }
+.search > .i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search input { padding-left: 42px; height: 44px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 12px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    padding: 8px 13px 8px 11px; border-radius: 20px; font-size: 14px; font-weight: 500;
+    background: var(--s1); color: var(--muted); border: 1px solid var(--line);
+    transition: background .22s var(--ease), color .22s, transform .15s;
+}
+.chip .i { width: 17px; height: 17px; }
+.chip:active { transform: scale(.95); }
+.chip.on { background: var(--plate); color: var(--ink); border-color: var(--plate); }
 
-        /* Профіль / гаманець */
-        .wallet { background: linear-gradient(135deg, #1d4ed8, #0f766e); color: #fff; border-radius: 16px; padding: 18px; margin-bottom: 14px; }
-        .wallet .sum { font-size: 30px; font-weight: 800; margin: 4px 0 12px; }
-        .wallet .sub { display: flex; gap: 18px; font-size: 12px; opacity: .85; margin-bottom: 14px; }
-        .wallet .btn { background: rgba(255,255,255,.2); color: #fff; }
-        .my-listing { display: flex; gap: 10px; align-items: center; }
-        .my-listing img, .my-listing .ph { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; font-size: 24px; }
-        .ledger-row { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
-        .ledger-row:first-child { border-top: none; }
-        .plus { color: var(--green); font-weight: 700; }
-        .minus { color: var(--red); font-weight: 700; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lcard {
+    position: relative; display: flex; flex-direction: column; background: var(--s1); border-radius: 16px; overflow: hidden;
+    border: 1.5px solid transparent; text-align: left; transition: transform .18s var(--ease);
+}
+.lcard:active { transform: scale(.97); }
+.lcard.vip { border-color: var(--mark); }
+.thumb { position: relative; aspect-ratio: 4 / 3; background: var(--s2); overflow: hidden; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--s3);
+      background: repeating-linear-gradient(135deg, var(--s2) 0 10px, #26304380 10px 20px); }
+.ph .i { width: 38%; height: 38%; stroke-width: 1.3; color: #46526C; }
+.tags { position: absolute; top: 8px; left: 8px; display: flex; gap: 5px; }
+.tag { display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 7px; border-radius: 7px; font-size: 11.5px; font-weight: 700; }
+.tag .i { width: 13px; height: 13px; stroke-width: 2.2; }
+.tag--vip { background: var(--mark); color: var(--ink); }
+.tag--top { background: var(--blue); color: #fff; }
+.lbody { padding: 10px 11px 12px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+.lbody h3 { font-size: 14px; font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+.seller-mini { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); min-width: 0; }
+.seller-mini span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seller-mini .rate { color: var(--mark); display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.lbody .plate { align-self: flex-start; margin-top: auto; }
 
-        /* Нижня навігація */
-        nav.tabs { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card-bg); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); z-index: 200; }
-        nav.tabs button { flex: 1; background: none; border: none; color: var(--hint-color); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; padding: 4px 0; position: relative; }
-        nav.tabs button b { font-size: 20px; font-weight: normal; }
-        nav.tabs button.active { color: var(--btn-color); }
-        nav.tabs .dot { position: absolute; top: 2px; right: calc(50% - 18px); background: var(--red); color: #fff; font-size: 10px; border-radius: 10px; padding: 1px 5px; }
-        nav.tabs .sell b { background: var(--btn-color); color: var(--btn-text); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-top: -4px; }
+/* ---------- аватари ---------- */
+.ava { position: relative; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; }
+.ava img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ava--xs { width: 20px; height: 20px; font-size: 10px; }
+.ava--s { width: 34px; height: 34px; font-size: 14px; }
+.ava--m { width: 46px; height: 46px; font-size: 18px; }
+.ava--xl { width: 88px; height: 88px; font-size: 34px; border: 4px solid var(--asphalt); }
 
-        /* Bottom sheet (модалки) */
-        .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 900; }
-        .backdrop.active { display: block; }
-        .promo-modal { display: none; position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -5px 20px rgba(0,0,0,0.5); z-index: 1000; max-height: 88vh; overflow-y: auto; }
-        .promo-modal.active { display: block; animation: up .2s ease-out; }
-        @keyframes up { from { transform: translateY(40px); opacity: 0; } }
-        .promo-modal h3 { margin-top: 0; }
-        .promo-option { background-color: rgba(127,127,127,0.08); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .promo-details h4 { margin: 0 0 4px 0; color: var(--vip-color); }
-        .promo-details p { margin: 0; font-size: 12px; color: var(--hint-color); }
-        .promo-prices { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        .pay-btn { border: none; padding: 7px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap; }
-        .pay-uah { background-color: var(--green); color: white; }
-        .pay-stars { background-color: #3b82f6; color: white; }
-        .close-modal { width: 100%; padding: 12px; background: rgba(127,127,127,0.15); color: var(--text-color); border: none; border-radius: 8px; margin-top: 10px; font-size: 15px; cursor: pointer; }
-        .presets { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-        .presets button { flex: 1; min-width: 60px; }
-        .rating-pick { display: flex; gap: 6px; font-size: 32px; margin-bottom: 10px; }
-        .rating-pick span { cursor: pointer; opacity: .3; }
-        .rating-pick span.on { opacity: 1; }
-        .radio { display: flex; gap: 8px; margin-bottom: 14px; }
-        .radio label { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px; text-align: center; font-size: 14px; cursor: pointer; }
-        .radio input { display: none; }
-        .radio input:checked + span { color: var(--btn-color); font-weight: 700; }
-        .radio label:has(input:checked) { border-color: var(--btn-color); }
+/* ---------- сторінка оголошення ---------- */
+.hero-img { margin: -12px -16px 0; aspect-ratio: 4 / 3; max-height: 340px; width: calc(100% + 32px); background: var(--s1); overflow: hidden; }
+.hero-img img { width: 100%; height: 100%; object-fit: cover; }
+.l-head { padding: 18px 0 4px; }
+.l-head .tags { position: static; margin-bottom: 10px; }
+.l-head h1 { font-size: 22px; font-weight: 700; line-height: 1.25; margin-bottom: 14px; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-radius: 16px; overflow: hidden; margin: 18px 0 12px; }
+.facts div { background: var(--s1); padding: 11px 14px; }
+.facts dt { font-size: 12px; color: var(--muted); }
+.facts dd { margin: 2px 0 0; font-weight: 600; font-size: 14.5px; }
+.desc { white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+.seller-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; transition: transform .15s var(--ease); }
+.seller-card:active { transform: scale(.98); }
+.seller-card .grow { flex: 1; min-width: 0; }
+.seller-card b { display: block; font-size: 16px; }
+.trust { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 600; padding: 3px 8px 3px 6px; border-radius: 8px; margin-top: 4px; }
+.trust .i { width: 14px; height: 14px; stroke-width: 2.2; }
+.trust--ok { background: rgba(63, 185, 122, .13); color: var(--green); }
+.trust--new { background: var(--s2); color: var(--muted); }
+.stars { display: inline-flex; gap: 1px; color: var(--mark); vertical-align: -2px; }
+.stars .i { width: 14px; height: 14px; }
+.stars .off { color: var(--s3); }
+.buybar {
+    position: fixed; left: 0; right: 0; bottom: calc(var(--tabbar) + var(--safe-b)); z-index: 40;
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: rgba(26, 33, 48, .92); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border-top: 1px solid var(--line); animation: barUp .4s var(--ease) both;
+}
+@keyframes barUp { from { transform: translateY(100%); } }
+.buybar .btn { flex: 1; }
+.has-buybar { padding-bottom: 84px; }
 
-        .toast { position: fixed; left: 16px; right: 16px; bottom: 90px; background: #222; color: #fff; padding: 12px 14px; border-radius: 12px; font-size: 14px; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,.4); transition: opacity .3s; text-align: center; }
-        .toast.error { background: #7f1d1d; }
-    </style>
+/* ---------- відгуки ---------- */
+.review { display: flex; gap: 11px; padding: 14px 0; border-top: 1px solid var(--line); }
+.review:first-child { border-top: 0; padding-top: 2px; }
+.review .body { flex: 1; min-width: 0; }
+.review .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.review .head b { font-size: 14.5px; }
+.review p { margin-top: 5px; font-size: 14.5px; line-height: 1.5; word-break: break-word; }
+.review .deal { font-size: 12.5px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+.rsum { display: flex; gap: 20px; align-items: center; }
+.rsum .avg { text-align: center; }
+.rsum .avg b { display: block; font-family: var(--f-num); font-size: 48px; font-weight: 700; line-height: 1; }
+.rsum .bars { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.bar span:first-child { width: 8px; font-family: var(--f-num); font-size: 14px; }
+.bar .track { flex: 1; height: 6px; background: var(--s3); border-radius: 3px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--mark); border-radius: 3px; width: 0; transition: width .8s var(--ease); }
+.bar span:last-child { width: 22px; text-align: right; }
+
+/* ---------- форма ---------- */
+.field { display: block; margin-bottom: 16px; }
+.field > span { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--muted); margin-bottom: 7px; font-weight: 500; }
+.pick-proj { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.pick-proj button { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px 8px; border-radius: 14px; background: var(--s1); border: 1.5px solid var(--line); font-size: 11.5px; line-height: 1.2; text-align: center; color: var(--muted); transition: border-color .2s, color .2s, transform .15s; }
+.pick-proj button:active { transform: scale(.95); }
+.pick-proj button.on { border-color: var(--mark); color: var(--text); }
+.pick-proj img { width: 38px; height: 38px; object-fit: contain; }
+.payout { background: var(--s1); border-radius: 14px; padding: 12px 14px; margin: -4px 0 16px; font-size: 14px; }
+.payout div { display: flex; justify-content: space-between; padding: 3px 0; }
+.payout div:last-child { border-top: 1px dashed var(--line); margin-top: 5px; padding-top: 8px; font-weight: 600; }
+.payout div:last-child b { color: var(--green); }
+.drop { position: relative; height: 170px; border: 1.5px dashed var(--s3); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); overflow: hidden; transition: border-color .2s; width: 100%; }
+.drop:active { border-color: var(--mark); }
+.drop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.note { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 12px; line-height: 1.5; }
+
+/* ---------- сегменти ---------- */
+.seg { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--s1); border-radius: 14px; padding: 4px; margin-bottom: 16px; }
+.seg::before { content: ''; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--n, 2)); background: var(--s3); border-radius: 10px; transform: translateX(calc(var(--v, 0) * 100%)); transition: transform .35s var(--ease); }
+.seg button { position: relative; z-index: 1; padding: 9px 4px; font-size: 14px; font-weight: 600; color: var(--muted); transition: color .25s; }
+.seg button.on { color: var(--text); }
+
+/* ---------- угоди ---------- */
+.drow { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 14px; background: var(--s1); border-radius: 16px; margin-bottom: 10px; transition: transform .15s var(--ease); }
+.drow:active { transform: scale(.98); }
+.drow .grow { flex: 1; min-width: 0; }
+.drow b { display: block; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.drow .meta { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.drow .right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.sico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sico .i { width: 19px; height: 19px; }
+.c-blue { background: rgba(91, 140, 255, .14); color: var(--blue); }
+.c-yellow { background: rgba(242, 194, 48, .14); color: var(--mark); }
+.c-red { background: rgba(229, 72, 77, .14); color: #FF7A7E; }
+.c-green { background: rgba(63, 185, 122, .14); color: var(--green); }
+.c-grey { background: var(--s2); color: var(--muted); }
+.timer { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--mark); }
+.timer .i { width: 13px; height: 13px; }
+
+.deal-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.deal-top h1 { font-size: 18px; font-weight: 700; line-height: 1.3; }
+.status { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px 5px 8px; border-radius: 10px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.status .i { width: 15px; height: 15px; }
+.money { margin-top: 14px; font-size: 14px; }
+.money div { display: flex; justify-content: space-between; padding: 4px 0; }
+.track-steps { position: relative; display: flex; justify-content: space-between; margin: 20px 4px 2px; }
+.track-steps .line { position: absolute; left: 14px; right: 14px; top: 13px; height: 3px; background: var(--s3); border-radius: 2px; }
+.track-steps .line i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--green); border-radius: 2px; width: 0; transition: width .9s .15s var(--ease); }
+.tstep { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); width: 33%; }
+.track-steps .line + .tstep { align-items: flex-start; }
+.tstep:last-child { align-items: flex-end; }
+.tstep .dot { width: 29px; height: 29px; border-radius: 50%; background: var(--s2); border: 2px solid var(--s3); display: flex; align-items: center; justify-content: center; transition: background .3s, border-color .3s; }
+.tstep .dot .i { width: 15px; height: 15px; stroke-width: 2.6; opacity: 0; }
+.tstep.done { color: var(--text); }
+.tstep.done .dot { background: var(--green); border-color: var(--green); color: #06170E; animation: pop .45s var(--spring) both; animation-delay: calc(var(--i) * 260ms + .2s); }
+.tstep.done .dot .i { opacity: 1; }
+@keyframes pop { 0% { transform: scale(.6); } }
+.hint { display: flex; gap: 10px; padding: 13px 14px; border-radius: 14px; background: var(--s1); border-left: 3px solid var(--mark); margin: 12px 0; font-size: 14px; line-height: 1.5; }
+.hint .i { color: var(--mark); margin-top: 1px; }
+.hint--red { border-left-color: var(--red); }
+.hint--red .i { color: var(--red); }
+.hint--green { border-left-color: var(--green); }
+.hint--green .i { color: var(--green); }
+.actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+
+.chat { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow-y: auto; padding: 2px 2px 10px; }
+.msg { max-width: 82%; padding: 9px 12px 7px; border-radius: 16px; font-size: 14.5px; line-height: 1.42; white-space: pre-wrap; word-break: break-word; animation: msgIn .28s var(--ease) both; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+.msg time { display: block; font-size: 10.5px; opacity: .55; margin-top: 3px; text-align: right; }
+.msg.me { align-self: flex-end; background: var(--mark); color: var(--ink); border-bottom-right-radius: 5px; }
+.msg.them { align-self: flex-start; background: var(--s2); border-bottom-left-radius: 5px; }
+.msg.sys { align-self: stretch; max-width: none; background: transparent; border: 1px dashed var(--s3); color: var(--muted); font-size: 13px; border-radius: 12px; }
+.msg.adm { align-self: stretch; max-width: none; background: rgba(91, 140, 255, .1); border: 1px solid rgba(91, 140, 255, .3); }
+.msg.adm strong { color: var(--blue); display: block; font-size: 12.5px; margin-bottom: 2px; }
+.composer { display: flex; gap: 8px; margin-top: 4px; }
+.composer input { flex: 1; height: 46px; border-radius: 23px; padding-left: 18px; }
+.composer .send { width: 46px; height: 46px; border-radius: 50%; background: var(--mark); color: var(--ink); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .15s var(--spring); }
+.composer .send:active { transform: scale(.88); }
+.rate-pick { display: flex; gap: 6px; margin: 10px 0 12px; }
+.rate-pick button .i { width: 34px; height: 34px; color: var(--s3); transition: color .2s, transform .25s var(--spring); }
+.rate-pick button.on .i { color: var(--mark); transform: scale(1.08); }
+
+/* ---------- профіль ---------- */
+.pf { margin: -12px -16px 0; }
+.pf-road { height: 92px; background: linear-gradient(180deg, #0D111A, var(--asphalt)); position: relative; overflow: hidden; }
+.pf-road::before { content: ''; position: absolute; left: -60px; right: -60px; top: 44px; height: 4px; background: repeating-linear-gradient(90deg, var(--mark) 0 26px, transparent 26px 50px); opacity: .7; animation: drive 1.4s var(--ease) both; }
+@keyframes drive { from { transform: translateX(-50px); opacity: 0; } }
+.pf-main { padding: 0 16px; margin-top: -46px; position: relative; }
+.pf-main h1 { font-size: 24px; font-weight: 700; margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+.pf-since { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.pf-bio { margin-top: 10px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.pf-bio.empty-bio { color: var(--muted); font-style: italic; }
+.pf-actions { position: absolute; right: 16px; top: 52px; display: flex; gap: 8px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 16px; background: var(--s1); border-radius: 16px; }
+.stats div { padding: 12px 8px; text-align: center; }
+.stats div + div { border-left: 1px solid var(--line); }
+.stats b { display: flex; align-items: center; justify-content: center; gap: 4px; font-family: var(--f-num); font-size: 26px; font-weight: 700; line-height: 1.05; }
+.stats b .i { color: var(--mark); width: 18px; height: 18px; }
+.stats span { font-size: 12.5px; color: var(--muted); }
+
+.wallet { margin-top: 16px; padding: 18px; border-radius: 20px; background: linear-gradient(160deg, #1D2638, #161C29); border: 1px solid var(--line); position: relative; overflow: hidden; }
+.wallet .plate { position: absolute; right: 16px; top: 16px; transform: rotate(-4deg); }
+.wallet label { font-size: 13px; color: var(--muted); }
+.wallet .sum { font-family: var(--f-num); font-size: 44px; font-weight: 700; line-height: 1.05; margin: 2px 0 12px; font-variant-numeric: tabular-nums; }
+.wallet .sub { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.wallet .sub b { color: var(--text); font-weight: 600; display: block; font-family: var(--f-num); font-size: 18px; }
+.mine { display: flex; gap: 12px; align-items: center; padding: 10px; background: var(--s1); border-radius: 16px; margin-bottom: 10px; }
+.mine .thumbs { width: 64px; height: 64px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: var(--s2); }
+.mine .thumbs img { width: 100%; height: 100%; object-fit: cover; }
+.mine .grow { flex: 1; min-width: 0; text-align: left; }
+.mine b { display: block; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mine .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; padding: 2px 7px; border-radius: 6px; background: var(--s2); color: var(--muted); }
+.pill .i { width: 12px; height: 12px; }
+.pill--vip { background: rgba(242, 194, 48, .15); color: var(--mark); }
+.pill--top { background: rgba(91, 140, 255, .15); color: var(--blue); }
+.ledger { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); }
+.ledger:first-child { border-top: 0; padding-top: 0; }
+.ledger .grow { flex: 1; min-width: 0; }
+.ledger .amt { font-family: var(--f-num); font-size: 18px; font-weight: 600; }
+.plus { color: var(--green); }
+.minus { color: var(--text); }
+
+/* ---------- нижня навігація ---------- */
+.tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    height: calc(var(--tabbar) + var(--safe-b)); padding-bottom: var(--safe-b);
+    background: rgba(18, 23, 34, .9); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border-top: 1px solid var(--line);
+}
+.tabbar .ind { position: absolute; top: -1px; left: 0; width: 25%; height: 3px; display: flex; justify-content: center; transform: translateX(calc(var(--t, 0) * 100%)); transition: transform .42s var(--spring); }
+.tabbar .ind::before { content: ''; width: 34px; height: 3px; border-radius: 0 0 3px 3px; background: var(--mark); }
+.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 500; color: var(--muted); position: relative; transition: color .25s; }
+.tab .i { width: 23px; height: 23px; transition: transform .3s var(--spring); }
+.tab.on { color: var(--text); }
+.tab.on .i { transform: translateY(-1px) scale(1.06); }
+.tab:active .i { transform: scale(.86); }
+.tab .plus-ico { width: 40px; height: 32px; border-radius: 11px; background: var(--mark); color: var(--ink); display: flex; align-items: center; justify-content: center; }
+.tab .plus-ico .i { stroke-width: 2.4; width: 21px; height: 21px; }
+.tab .badge { position: absolute; top: 7px; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--red); color: #fff; font-size: 10.5px; font-weight: 700; display: none; align-items: center; justify-content: center; }
+.tab .badge.show { display: flex; animation: pop .4s var(--spring); }
+
+/* ---------- шторка ---------- */
+.backdrop { position: fixed; inset: 0; z-index: 90; background: rgba(5, 8, 14, .6); opacity: 0; pointer-events: none; transition: opacity .3s; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.backdrop.on { opacity: 1; pointer-events: auto; }
+.sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+    max-height: 90vh; overflow-y: auto; background: var(--s1);
+    border-radius: 24px 24px 0 0; padding: 10px 18px calc(20px + var(--safe-b));
+    transform: translateY(105%); transition: transform .42s var(--ease); visibility: hidden;
+}
+.sheet.on { transform: none; visibility: visible; }
+.sheet .grab { width: 38px; height: 4px; border-radius: 2px; background: var(--s3); margin: 0 auto 16px; }
+.sheet h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.sheet .lead { color: var(--muted); font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
+.sheet .cancel { margin-top: 10px; }
+.opt { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; background: var(--s2); margin-bottom: 10px; }
+.opt .grow { flex: 1; min-width: 0; }
+.opt h4 { font-size: 15px; font-weight: 700; }
+.opt p { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.opt .pays { display: flex; flex-direction: column; gap: 6px; }
+.pay { min-width: 76px; height: 34px; padding: 0 10px; border-radius: 10px; font-family: var(--f-num); font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px; transition: transform .15s var(--ease); }
+.pay:active { transform: scale(.94); }
+.pay--uah { background: var(--plate); color: var(--ink); }
+.pay--star { background: #2C3A5A; color: #FFD66B; }
+.pay--star .i { width: 14px; height: 14px; }
+.sum-box { background: var(--s2); border-radius: 16px; padding: 14px; margin-bottom: 16px; }
+.sum-box .line { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 14.5px; }
+.steps-list { list-style: none; padding: 0; margin: 0 0 16px; counter-reset: s; }
+.steps-list li { counter-increment: s; display: flex; gap: 12px; padding: 7px 0; font-size: 14.5px; line-height: 1.45; }
+.steps-list li::before { content: counter(s); flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--s3); font-family: var(--f-num); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: -6px 0 16px; }
+.presets button { height: 38px; border-radius: 10px; background: var(--s2); font-family: var(--f-num); font-size: 17px; font-weight: 600; transition: transform .15s, background .2s; }
+.presets button:active { transform: scale(.94); background: var(--s3); }
+.methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.methods button { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; border-radius: 14px; background: var(--s2); border: 1.5px solid transparent; font-size: 13.5px; font-weight: 600; color: var(--muted); transition: border-color .2s, color .2s; }
+.methods button.on { border-color: var(--mark); color: var(--text); }
+.sort-opt { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 15px 4px; border-bottom: 1px solid var(--line); font-size: 15.5px; }
+.sort-opt .i { color: var(--mark); opacity: 0; transition: opacity .2s; }
+.sort-opt.on .i { opacity: 1; }
+
+/* ---------- тости ---------- */
+.toasts { position: fixed; top: 10px; left: 12px; right: 12px; z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--plate); color: var(--ink); font-size: 14.5px; font-weight: 500; box-shadow: 0 10px 30px rgba(0, 0, 0, .45); animation: toastIn .38s var(--spring) both; }
+.toast .i { color: var(--green); }
+.toast.err { background: #2A1518; color: #FFD5D6; border: 1px solid rgba(229, 72, 77, .5); }
+.toast.err .i { color: var(--red); }
+.toast.out { animation: toastOut .3s var(--ease) both; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-20px) scale(.96); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-14px); } }
+
+.gate { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px; padding: 24px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+}
+</style>
 </head>
 <body>
 
-    <header>
-        <button class="back-btn" id="backBtn" onclick="back()">🔙</button>
-        <h1 class="page-title" id="mainTitle">RP Market</h1>
-        <div class="header-balance" id="hdrBalance" onclick="setTab('profile')" style="display:none"></div>
-    </header>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-store" viewBox="0 0 24 24"><path d="M3.5 9 5 4h14l1.5 5"/><path d="M4.5 9v11h15V9"/><path d="M3.5 9h17"/><path d="M9.5 20v-5.5h5V20"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h15l-3.5-3.5"/><path d="M20 16H5l3.5 3.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c.8-3.6 3.8-5.5 7.5-5.5s6.7 1.9 7.5 5.5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 19.5 6v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6z"/><path d="m8.8 12 2.3 2.3 4.2-4.6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.2 2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 17.1 6.6 20l1.1-6.1-4.5-4.3 6.1-.8z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="m3 3 18 18"/><path d="M10.4 5.7A9 9 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.7 3.5M6.5 6.9C4 8.6 2.5 12 2.5 12S6 18.5 12 18.5c1.5 0 2.9-.4 4.1-1"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="m3.5 8 4.2 4 4.3-6.5 4.3 6.5 4.2-4-1.8 10.5H5.3z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 3.5h6l-1 5.5 3.5 3.5h-11L10 9z"/><path d="M12 12.5V21"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7.5h15a1.5 1.5 0 0 1 1.5 1.5v9.5A1.5 1.5 0 0 1 19 20H5a1.5 1.5 0 0 1-1.5-1.5V6A1.5 1.5 0 0 1 5 4.5h12"/><path d="M16 13.8h.01"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12 20 4l-5.5 16-3-6.5z"/><path d="m11.5 13.5 4-4"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 21V4h11l-2 4.25 2 4.25h-11"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="9" cy="7" rx="5.5" ry="2.8"/><path d="M3.5 7v4c0 1.5 2.5 2.8 5.5 2.8s5.5-1.3 5.5-2.8V7"/><path d="M9 13.8v2.4c0 1.5 2.5 2.8 5.5 2.8s5.5-1.3 5.5-2.8v-4c0-1.4-2.1-2.6-4.9-2.8"/></symbol>
+    <symbol id="i-idcard" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2"/><path d="M5.8 16c.6-1.5 1.8-2.3 3.2-2.3s2.6.8 3.2 2.3M14.5 10h4M14.5 13.5h3"/></symbol>
+    <symbol id="i-house" viewBox="0 0 24 24"><path d="m3.5 11 8.5-7 8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2.5 4.5 14h7l-1 7.5L19 10h-7z"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 21.5 20h-19z"/><path d="M12 10v4.5M12 17.2v.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.5 5h15v10.5H10L5.5 19v-3.5h-1z"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M6.5 15h4"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.7"/><path d="m20.5 15.5-4.5-4.5-8.5 8.5"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12.5 15.5 8.5 11.5c1.3-5 5-8 11-8.5-.5 6-3.5 9.7-7 12.5z"/><path d="M8.5 11.5H5l2.5-3.5h4M12.5 15.5V19l3.5-2.5v-4"/><path d="M6.2 16.3c-1.5.5-2.2 2-2.2 3.7 1.7 0 3.2-.7 3.7-2.2"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12v7.5h14V12"/></symbol>
+    <symbol id="i-in" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7 2.5 13a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11.5" rx="3"/><path d="M12 4.5V8M9 13v1.5M15 13v1.5"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7.5 4.5v15M4.5 16.5l3 3 3-3M16.5 19.5v-15M13.5 7.5l3-3 3 3"/></symbol>
+    <symbol id="i-tg" viewBox="0 0 24 24"><path d="m21 4.5-3 15.5-6.2-4.8-3 2.8.5-4.3 8.2-7.4-10.3 6.4L3 11.4z"/></symbol>
+</svg>
 
-    <main id="main"><div class="loader"></div></main>
+<header class="topbar" id="topbar">
+    <button class="back" id="backBtn" onclick="back()" aria-label="Назад"><svg class="i i--l"><use href="#i-back"/></svg></button>
+    <div class="topbar-title" id="title"></div>
+    <button class="bal-chip" id="balChip" onclick="setTab('profile')" style="display:none" aria-label="Баланс"><svg class="i"><use href="#i-wallet"/></svg><span id="balVal"></span></button>
+</header>
 
-    <nav class="tabs" id="tabs">
-        <button data-tab="market" onclick="setTab('market')"><b>🏪</b>Ринок</button>
-        <button data-tab="deals" onclick="setTab('deals')"><b>🤝</b>Угоди<span class="dot" id="dealsDot" style="display:none"></span></button>
-        <button data-tab="sell" class="sell" onclick="setTab('sell')"><b>＋</b>Продати</button>
-        <button data-tab="profile" onclick="setTab('profile')"><b>👤</b>Профіль</button>
-    </nav>
+<main id="main"></main>
 
-    <div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
-    <div class="promo-modal" id="sheet"></div>
+<nav class="tabbar" id="tabbar" style="--t:0">
+    <span class="ind"></span>
+    <button class="tab" data-tab="market" onclick="setTab('market')"><svg class="i"><use href="#i-store"/></svg>Ринок</button>
+    <button class="tab" data-tab="deals" onclick="setTab('deals')"><svg class="i"><use href="#i-swap"/></svg>Угоди<span class="badge" id="dealsBadge"></span></button>
+    <button class="tab" data-tab="sell" onclick="setTab('sell')"><span class="plus-ico"><svg class="i"><use href="#i-plus"/></svg></span>Продати</button>
+    <button class="tab" data-tab="profile" onclick="setTab('profile')"><svg class="i"><use href="#i-user"/></svg>Профіль</button>
+</nav>
 
-    <script>
-    // ============================================================
-    // Якщо міні-ап лежить на GitHub Pages, а бекенд на іншому домені
-    // (тунель / VPS) — впиши сюди адресу бекенду, напр. 'https://abc.lhr.life'.
-    // Якщо index.html віддає сам бекенд — залиш порожнім.
-    const API_URL = 'https://kelly-contribution-outcomes-toronto.trycloudflare.com';
-    // ============================================================
+<div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="toasts" id="toasts"></div>
 
-    const tg = window.Telegram && window.Telegram.WebApp;
-    const $main = document.getElementById('main');
-    let CFG = null, ME = null, renderSeq = 0, pollTimer = null, feed = null;
-    const state = { tab: 'market', stack: [], project: null };
+<script>
+// Адреса бекенду (тунель cloudflared). Після перезапуску тунелю — заміни тут.
+const API_URL = 'https://kelly-contribution-outcomes-toronto.trycloudflare.com';
 
-    const STATUS = {
-        paid: ['🔒 Оплачено', 'st-paid'], delivered: ['📦 Передано', 'st-delivered'],
-        dispute: ['⚖️ Спір', 'st-dispute'], completed: ['✅ Завершено', 'st-completed'],
-        refunded: ['↩️ Повернено', 'st-refunded'],
-    };
-    const LEDGER = {
-        topup: '💳 Поповнення', deal_hold: '🔒 Оплата угоди', deal_refund: '↩️ Повернення з угоди',
-        deal_payout: '💰 Продаж', withdraw: '💸 Виведення', withdraw_back: '↩️ Скасоване виведення',
-        promo: '🚀 Просування', admin: '🛡 Коригування адміном',
-    };
-    const CAT_EMOJI = { currency: '💰', account: '👤', property: '🏠', boost: '⚡', other: '📦' };
+const tg = window.Telegram && window.Telegram.WebApp;
+const $main = document.getElementById('main');
+let CFG = null, ME = null, COUNTS = {}, renderSeq = 0, pollTimer = null, feed = null, shownBalance = null, homeAnimated = false;
+const state = { tab: 'market', stack: [], project: null };
+const TABS = ['market', 'deals', 'sell', 'profile'];
+const ROOTS = { market: 'home', deals: 'deals', sell: 'sell', profile: 'me' };
 
-    // ---------------------------------------------------------------- утиліти
-    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    function uah(k) {
-        const v = (k || 0) / 100;
-        return v.toLocaleString('uk-UA', { minimumFractionDigits: Number.isInteger(v) ? 0 : 2, maximumFractionDigits: 2 }) + ' ₴';
-    }
-    const media = p => p ? API_URL + p : null;
-    const date = ts => new Date(ts * 1000).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    function left(ts) {
-        const s = ts - Date.now() / 1000;
-        if (s <= 0) return 'час вийшов';
-        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
-        return h ? `${h} год ${m} хв` : `${m} хв`;
-    }
-    const ratingHtml = u => u.rating ? `<span class="stars">★</span> ${u.rating.toFixed(1)} <span class="muted">(${u.reviews})</span>` : '<span class="muted">Новий продавець</span>';
-    const initial = name => esc((name || '?').trim().charAt(0).toUpperCase());
-    const haptic = (t = 'light') => { try { tg.HapticFeedback.impactOccurred(t); } catch (e) {} };
-    const notifyHaptic = t => { try { tg.HapticFeedback.notificationOccurred(t); } catch (e) {} };
+const CAT_ICON = { currency: 'coins', account: 'idcard', property: 'house', boost: 'zap', other: 'box' };
+const STATUS = {
+    paid:      { t: 'Оплачено',   i: 'lock',  c: 'c-blue' },
+    delivered: { t: 'Передано',   i: 'box',   c: 'c-yellow' },
+    dispute:   { t: 'Спір',       i: 'scale', c: 'c-red' },
+    completed: { t: 'Завершено',  i: 'check', c: 'c-green' },
+    refunded:  { t: 'Повернено',  i: 'undo',  c: 'c-grey' },
+};
+const LEDGER = {
+    topup: ['Поповнення', 'in'], deal_hold: ['Оплата угоди', 'lock'], deal_refund: ['Повернення з угоди', 'undo'],
+    deal_payout: ['Продаж', 'coins'], withdraw: ['Виведення', 'out'], withdraw_back: ['Скасоване виведення', 'undo'],
+    promo: ['Просування', 'rocket'], admin: ['Коригування адміністратором', 'shield'],
+};
+const AVA_COLORS = ['#3B5BA9', '#2F7D6B', '#8A4FBF', '#B5653A', '#3D7EA6', '#A8456B', '#5E7A2E', '#7A5C3B'];
 
-    async function api(path, body) {
-        const res = await fetch(API_URL + path, {
+// ================================================================ утиліти
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = (n, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const num = k => ((k || 0) / 100).toLocaleString('uk-UA', { maximumFractionDigits: 2 });
+const uah = k => num(k) + ' ₴';
+const plate = (k, cls = '') => `<span class="plate ${cls}"><i>UA</i><b>${num(k)} ₴</b></span>`;
+const media = p => p ? API_URL + p : null;
+const haptic = (t = 'light') => { try { tg.HapticFeedback.impactOccurred(t); } catch (e) {} };
+const hapticN = t => { try { tg.HapticFeedback.notificationOccurred(t); } catch (e) {} };
+function plural(n, f) { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b > 1 && b < 5 ? f[1] : b === 1 ? f[0] : f[2]; }
+const W = { deal: ['угода', 'угоди', 'угод'], review: ['відгук', 'відгуки', 'відгуків'], listing: ['оголошення', 'оголошення', 'оголошень'] };
+function when(ts) {
+    const d = new Date(ts * 1000), now = new Date();
+    const days = Math.floor((new Date(now.toDateString()) - new Date(d.toDateString())) / 864e5);
+    const hm = d.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+    if (days === 0) return 'сьогодні, ' + hm;
+    if (days === 1) return 'вчора, ' + hm;
+    return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' }) + (d.getFullYear() !== now.getFullYear() ? ' ' + d.getFullYear() : '');
+}
+const hm = ts => new Date(ts * 1000).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+function left(ts) {
+    const s = ts - Date.now() / 1000;
+    if (s <= 0) return 'час минув';
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    return h ? `${h} год ${m} хв` : `${m} хв`;
+}
+function stars(r, cls = '') {
+    let h = '';
+    for (let i = 1; i <= 5; i++) h += ic('star', 'i--fill ' + (i <= Math.round(r) ? '' : 'off'));
+    return `<span class="stars ${cls}">${h}</span>`;
+}
+function ava(u, size = 's') {
+    const name = (u && u.name) || '?';
+    const color = AVA_COLORS[Math.abs(u && u.id || 0) % AVA_COLORS.length];
+    const img = u && u.photo ? `<img src="${esc(u.photo)}" alt="" class="fade" onload="this.classList.add('ok')" onerror="this.remove()">` : '';
+    return `<span class="ava ava--${size}" style="background:${color}">${esc(name.trim().charAt(0).toUpperCase())}${img}</span>`;
+}
+function trust(u) {
+    if (u.deals >= 10 && u.rating >= 4.5) return `<span class="trust trust--ok">${ic('shield')}Надійний продавець</span>`;
+    if (!u.deals) return `<span class="trust trust--new">Новий на маркеті</span>`;
+    return '';
+}
+const imgTag = (src, alt = '') => `<img src="${esc(src)}" alt="${esc(alt)}" class="fade" loading="lazy" onload="this.classList.add('ok')" onerror="this.parentNode.innerHTML='<div class=&quot;ph&quot;>${ic('image').replace(/"/g, '&quot;')}</div>'">`;
+const phTag = cat => `<div class="ph">${ic(CAT_ICON[cat] || 'box')}</div>`;
+
+async function api(path, body) {
+    let res;
+    try {
+        res = await fetch(API_URL + path, {
             method: body ? 'POST' : 'GET',
             headers: { 'Authorization': 'tma ' + (tg ? tg.initData : ''), 'Content-Type': 'application/json' },
             body: body ? JSON.stringify(body) : undefined,
         });
-        let data;
-        try { data = await res.json(); } catch (e) { throw new Error('Сервер недоступний, спробуй пізніше'); }
-        if (!data.ok) throw new Error(data.error || 'Помилка');
-        return data.data;
-    }
+    } catch (e) { throw new Error('Немає зв\'язку з сервером. Перевір інтернет і спробуй ще раз.'); }
+    let data;
+    try { data = await res.json(); } catch (e) { throw new Error('Сервер не відповідає. Спробуй за хвилину.'); }
+    if (!data.ok) throw new Error(data.error || 'Щось пішло не так');
+    return data.data;
+}
 
-    function toast(text, isError) {
-        const t = document.createElement('div');
-        t.className = 'toast' + (isError ? ' error' : '');
-        t.textContent = text;
-        document.body.appendChild(t);
-        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2600);
-        if (isError) notifyHaptic('error');
-    }
+function toast(text, err) {
+    const box = document.getElementById('toasts');
+    const t = document.createElement('div');
+    t.className = 'toast' + (err ? ' err' : '');
+    t.innerHTML = ic(err ? 'alert' : 'check') + `<span>${esc(text)}</span>`;
+    box.appendChild(t);
+    err ? hapticN('error') : hapticN('success');
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 2800);
+}
 
-    function confirmBox(text) {
-        return new Promise(resolve => {
-            try { if (tg && tg.isVersionAtLeast('6.2')) return tg.showConfirm(text, ok => resolve(ok)); } catch (e) {}
-            resolve(window.confirm(text));
-        });
-    }
+function confirmBox(text) {
+    return new Promise(resolve => {
+        try { if (tg && tg.isVersionAtLeast('6.2')) return tg.showConfirm(text, ok => resolve(!!ok)); } catch (e) {}
+        resolve(window.confirm(text));
+    });
+}
 
-    async function run(btn, fn) {
-        if (btn) { if (btn.disabled) return; btn.disabled = true; }
-        try { await fn(); } catch (e) { toast(e.message, true); } finally { if (btn) btn.disabled = false; }
-    }
+async function run(btn, fn) {
+    if (btn) { if (btn.disabled) return; btn.disabled = true; btn.classList.add('loading'); }
+    try { await fn(); } catch (e) { toast(e.message, true); }
+    finally { if (btn && btn.isConnected) { btn.disabled = false; btn.classList.remove('loading'); } }
+}
 
-    function feeFor(price) {
-        let fee = Math.round(price * CFG.commission_percent / 100);
-        fee = Math.max(fee, CFG.min_commission);
-        return Math.min(fee, price);
-    }
+function feeFor(p) { return Math.min(p, Math.max(Math.round(p * CFG.commission_percent / 100), CFG.min_commission)); }
+function parseMoney(s) { const v = parseFloat(String(s || '').replace(',', '.').replace(/\s/g, '')); return isFinite(v) && v > 0 ? Math.round(v * 100) : 0; }
 
-    function parseMoney(str) {
-        const v = parseFloat(String(str || '').replace(',', '.').replace(/\s/g, ''));
-        return isFinite(v) && v > 0 ? Math.round(v * 100) : 0;
-    }
-
-    async function refreshMe() {
-        const d = await api('/api/me');
-        ME = d.user; CFG = d.config;
-        const hb = document.getElementById('hdrBalance');
-        hb.textContent = uah(ME.balance);
-        hb.style.display = 'block';
-        return ME;
-    }
-
-    // ---------------------------------------------------------------- навігація
-    const ROOTS = { market: 'projects', deals: 'deals', sell: 'sell', profile: 'profile' };
-
-    function setTab(tab) {
-        haptic();
-        state.tab = tab;
-        state.stack = [{ name: ROOTS[tab], params: {} }];
-        render();
-    }
-    function go(name, params = {}) { haptic(); state.stack.push({ name, params }); render(); }
-    function back() {
-        if (document.getElementById('sheet').classList.contains('active')) return closeSheet();
-        if (state.stack.length > 1) { state.stack.pop(); render(); }
-    }
-    function replace(name, params = {}) { state.stack[state.stack.length - 1] = { name, params }; render(); }
-    function setTitle(t) { document.getElementById('mainTitle').textContent = t; }
-
-    async function render() {
-        stopPolling();
-        const seq = ++renderSeq;
-        const cur = state.stack[state.stack.length - 1];
-        const canBack = state.stack.length > 1;
-        document.getElementById('backBtn').style.display = canBack && !tg?.initData ? 'block' : 'none';
-        try { canBack ? tg.BackButton.show() : tg.BackButton.hide(); } catch (e) {}
-        document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === state.tab));
-        $main.innerHTML = '<div class="loader"></div>';
-        try {
-            const view = await VIEWS[cur.name](cur.params);
-            if (seq !== renderSeq) return;
-            $main.innerHTML = view.html;
-            window.scrollTo(0, 0);
-            if (view.after) view.after();
-        } catch (e) {
-            if (seq !== renderSeq) return;
-            $main.innerHTML = `<div class="empty">⚠️ ${esc(e.message)}<br><br><button class="btn small secondary" onclick="render()">Спробувати ще</button></div>`;
-        }
-    }
-    function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
-
-    // ---------------------------------------------------------------- bottom sheet
-    function openSheet(html) {
-        const s = document.getElementById('sheet');
-        s.innerHTML = html;
-        s.classList.add('active');
-        document.getElementById('backdrop').classList.add('active');
-        try { tg.BackButton.show(); } catch (e) {}
-        haptic('medium');
-    }
-    function closeSheet() {
-        document.getElementById('sheet').classList.remove('active');
-        document.getElementById('backdrop').classList.remove('active');
-        try { if (state.stack.length <= 1) tg.BackButton.hide(); } catch (e) {}
-    }
-
-    // ================================================================ VIEWS
-    const VIEWS = {};
-
-    // ---------- Вибір проєкту
-    VIEWS.projects = async () => {
-        setTitle('Обери проєкт');
-        const cards = CFG.projects.map(p => `
-            <div class="project-card" data-project="${esc(p.id)}">
-                <img src="${esc(p.img)}" alt="" onerror="this.outerHTML='<div class=&quot;emoji&quot;>${p.emoji}</div>'">
-                <span>${esc(p.id)}</span>
-            </div>`).join('');
-        return {
-            html: `
-                <div class="hero"><b>🛡 Безпечні угоди</b>Гроші продавцю — тільки після того, як ти отримав товар. Якщо щось не так — повернемо.
-                <a onclick="showRules()">Як це працює →</a></div>
-                <div class="projects-grid">${cards}</div>`,
-            after() {
-                document.querySelectorAll('.project-card').forEach(c => c.onclick = () => {
-                    state.project = c.dataset.project;
-                    go('listings', { project: c.dataset.project });
-                });
-            },
-        };
+function countUp(el, from, to, ms = 700) {
+    if (!el) return;
+    if (from === to || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = num(to); return; }
+    const t0 = performance.now();
+    const step = t => {
+        const p = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = num(Math.round(from + (to - from) * e));
+        if (p < 1) requestAnimationFrame(step);
     };
+    requestAnimationFrame(step);
+}
 
-    // ---------- Стрічка оголошень
-    function listingCard(l) {
-        const img = l.image ? `<img src="${esc(media(l.image))}" class="listing-img" loading="lazy">`
-                            : `<div class="listing-img ph">${CAT_EMOJI[l.category] || '📦'}</div>`;
-        const badges = (l.top ? '<div class="top-badge">ТОП</div>' : '') + (l.vip ? '<div class="vip-badge">VIP</div>' : '');
-        return `
-            <div class="listing-card${l.vip ? ' vip' : ''}" onclick="go('listing', {id: ${l.id}})">
-                <div class="badges">${badges}</div>
-                ${img}
-                <div class="listing-info">
-                    <h3 class="listing-title">${esc(l.title)}</h3>
-                    ${l.seller ? `<div class="listing-seller">${esc(l.seller.name)} · ${l.seller.rating ? '★ ' + l.seller.rating.toFixed(1) : 'новий'}</div>` : ''}
-                    <div class="listing-price">${uah(l.price)}</div>
-                </div>
-            </div>`;
+async function refreshMe() {
+    const d = await api('/api/me');
+    const prev = ME ? ME.balance : null;
+    ME = d.user; CFG = d.config; COUNTS = d.project_counts || {};
+    const chip = document.getElementById('balChip');
+    chip.style.display = 'flex';
+    countUp(document.getElementById('balVal'), prev ?? ME.balance, ME.balance);
+    if (prev !== null && prev !== ME.balance) { chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump'); }
+    return ME;
+}
+
+function shareLink(kind, id, text) {
+    if (!CFG.bot_username) return toast('Посилання стане доступним після перезапуску бота', true);
+    const link = `https://t.me/${CFG.bot_username}?start=${kind}_${id}`;
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+}
+
+// ================================================================ навігація
+function setTab(tab) {
+    haptic();
+    if (state.tab === tab && state.stack.length === 1 && tab !== 'sell') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    state.tab = tab;
+    state.stack = [{ name: ROOTS[tab], params: {} }];
+    render('fade');
+}
+function go(name, params = {}) { haptic(); state.stack.push({ name, params }); render('fwd'); }
+function back() {
+    if (document.getElementById('sheet').classList.contains('on')) return closeSheet();
+    if (state.stack.length > 1) { haptic(); state.stack.pop(); render('back'); }
+}
+function setTitle(html) { document.getElementById('title').innerHTML = html; }
+
+async function render(dir = 'fade') {
+    stopPolling();
+    const seq = ++renderSeq;
+    const cur = state.stack[state.stack.length - 1];
+    const deep = state.stack.length > 1;
+    document.getElementById('backBtn').classList.toggle('show', deep && !(tg && tg.initData));
+    try { deep ? tg.BackButton.show() : tg.BackButton.hide(); } catch (e) {}
+    document.getElementById('tabbar').style.setProperty('--t', TABS.indexOf(state.tab));
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === state.tab));
+    document.body.classList.remove('has-buybar');
+    const loader = setTimeout(() => { if (seq === renderSeq) $main.innerHTML = `<div class="page enter-fade">${skeletonPage()}</div>`; }, 120);
+    try {
+        const view = await VIEWS[cur.name](cur.params);
+        clearTimeout(loader);
+        if (seq !== renderSeq) return;
+        $main.innerHTML = `<div class="page enter-${dir}">${view.html}</div>`;
+        window.scrollTo(0, 0);
+        if (view.after) view.after();
+    } catch (e) {
+        clearTimeout(loader);
+        if (seq !== renderSeq) return;
+        $main.innerHTML = `<div class="page enter-fade"><div class="empty">${ic('alert')}<p>${esc(e.message)}</p><button class="btn btn--ghost btn--s" onclick="render()">Спробувати ще раз</button></div></div>`;
     }
+}
+function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
-    VIEWS.listings = async ({ project }) => {
-        setTitle(project);
-        feed = { project, category: '', q: '', sort: 'new', offset: 0 };
-        const chips = [['', 'Всі'], ...Object.entries(CFG.categories)]
-            .map(([k, v]) => `<div class="filter-chip${k === '' ? ' active' : ''}" data-cat="${k}">${esc(v)}</div>`).join('');
-        return {
-            html: `
-                <div class="row search">
-                    <input id="q" type="search" placeholder="🔍 Пошук: вірти, акаунт, будинок…" class="grow">
-                    <select id="sort" style="width:auto">
-                        <option value="new">Нові</option><option value="cheap">Дешевші</option><option value="expensive">Дорожчі</option>
-                    </select>
-                </div>
-                <div class="filters">${chips}</div>
-                <div class="listings-grid" id="grid"></div>
-                <div id="more"></div>`,
-            after() {
-                document.querySelectorAll('.filter-chip').forEach(chip => chip.onclick = () => {
-                    document.querySelector('.filter-chip.active').classList.remove('active');
-                    chip.classList.add('active');
-                    feed.category = chip.dataset.cat;
-                    loadFeed(true);
-                });
-                let timer;
-                document.getElementById('q').oninput = e => {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => { feed.q = e.target.value; loadFeed(true); }, 350);
-                };
-                document.getElementById('sort').onchange = e => { feed.sort = e.target.value; loadFeed(true); };
-                loadFeed(true);
-            },
-        };
+function skeletonPage() {
+    return `<div class="sk" style="height:44px;margin-bottom:14px"></div>${skeletonGrid(4)}`;
+}
+function skeletonGrid(n) {
+    return `<div class="grid">${Array.from({ length: n }, () => `<div><div class="sk" style="aspect-ratio:4/3;border-radius:16px 16px 4px 4px"></div><div class="sk" style="height:14px;margin:10px 8px 6px"></div><div class="sk" style="height:14px;width:60%;margin:0 8px 8px"></div><div class="sk" style="height:26px;width:46%;margin:0 8px"></div></div>`).join('')}</div>`;
+}
+
+window.addEventListener('scroll', () => document.getElementById('topbar').classList.toggle('scrolled', scrollY > 4), { passive: true });
+
+// ================================================================ шторка
+function openSheet(html) {
+    const s = document.getElementById('sheet');
+    s.innerHTML = '<div class="grab"></div>' + html;
+    s.scrollTop = 0;
+    requestAnimationFrame(() => { s.classList.add('on'); document.getElementById('backdrop').classList.add('on'); });
+    try { tg.BackButton.show(); } catch (e) {}
+    haptic('medium');
+}
+function closeSheet() {
+    document.getElementById('sheet').classList.remove('on');
+    document.getElementById('backdrop').classList.remove('on');
+    try { if (state.stack.length <= 1) tg.BackButton.hide(); } catch (e) {}
+}
+const sheetCancel = (t = 'Скасувати') => `<button class="btn btn--ghost cancel" onclick="closeSheet()">${t}</button>`;
+
+// ================================================================ VIEWS
+const VIEWS = {};
+
+// ---------- Головна: вибір проєкту
+VIEWS.home = async () => {
+    setTitle(`<span class="logo"><span class="plate"><i>UA</i><b>RP</b></span>Market</span>`);
+    const draw = !homeAnimated; homeAnimated = true;
+    const tiles = CFG.projects.map((p, i) => {
+        const n = COUNTS[p.id] || 0;
+        return `<button class="proj" style="--i:${i + 2}" data-p="${esc(p.id)}">
+            <div class="proj-logo"><img src="${esc(p.img)}" alt="" class="fade" onload="this.classList.add('ok')" onerror="this.outerHTML='<span class=&quot;fallback&quot;>${esc(p.id.split(' ').map(w => w[0]).join(''))}</span>'"></div>
+            <b>${esc(p.id)}</b><span>${n ? `${n} ${plural(n, W.listing)}` : 'Поки без оголошень'}</span></button>`;
+    }).join('');
+    return {
+        html: `
+            <div class="${draw ? 'stagger' : ''}">
+                <section class="safe" style="--i:0">
+                    <svg class="shield ${draw ? 'draw' : ''}" viewBox="0 0 64 64" aria-hidden="true">
+                        <path class="s-fill" d="M32 7 52 15v14c0 12.5-8.6 22.6-20 25.8C20.6 51.6 12 41.5 12 29V15z"/>
+                        <path class="s-body" pathLength="1" d="M32 7 52 15v14c0 12.5-8.6 22.6-20 25.8C20.6 51.6 12 41.5 12 29V15z"/>
+                        <path class="s-check" pathLength="1" d="m23.5 31.5 6 6 11-12"/>
+                    </svg>
+                    <div><h2>Кожна покупка — безпечна угода</h2>
+                    <p>Продавець отримає гроші тільки після того, як ти підтвердиш, що товар у тебе.</p>
+                    <button class="link" onclick="showRules()">Як це працює${ic('next', 'i--s')}</button></div>
+                </section>
+                <div class="sec-title" style="--i:1">Обери проєкт</div>
+                <div class="projects ${draw ? 'stagger' : ''}">${tiles}</div>
+            </div>`,
+        after() {
+            document.querySelectorAll('.proj').forEach(b => b.onclick = () => { state.project = b.dataset.p; go('listings', { project: b.dataset.p }); });
+        },
     };
+};
 
-    async function loadFeed(reset) {
-        const grid = document.getElementById('grid'), more = document.getElementById('more');
-        if (!grid) return;
-        const seq = renderSeq;
-        if (reset) { feed.offset = 0; grid.innerHTML = ''; more.innerHTML = '<div class="loader"></div>'; }
-        const p = new URLSearchParams({ project: feed.project, category: feed.category, q: feed.q, sort: feed.sort, offset: feed.offset });
-        try {
-            const d = await api('/api/listings?' + p);
-            if (seq !== renderSeq) return;
-            grid.insertAdjacentHTML('beforeend', d.items.map(listingCard).join(''));
-            feed.offset += d.items.length;
-            if (!feed.offset) {
-                more.innerHTML = `<div class="empty">Тут поки порожньо 🤷<br>Стань першим продавцем у ${esc(feed.project)}!<br><br>
-                    <button class="btn small" onclick="setTab('sell')">＋ Додати оголошення</button></div>`;
-            } else {
-                more.innerHTML = d.more ? '<br><button class="btn secondary" onclick="loadFeed(false)">Показати ще</button>' : '';
-            }
-        } catch (e) { more.innerHTML = `<div class="empty">⚠️ ${esc(e.message)}</div>`; }
-    }
+// ---------- Стрічка оголошень
+function listingCard(l, i = 0) {
+    const thumb = l.image ? imgTag(media(l.image), l.title) : phTag(l.category);
+    const tags = (l.top ? `<span class="tag tag--top">${ic('pin')}ТОП</span>` : '') + (l.vip ? `<span class="tag tag--vip">${ic('crown')}VIP</span>` : '');
+    const s = l.seller;
+    return `<button class="lcard${l.vip ? ' vip' : ''}" style="--i:${i}" onclick="go('listing',{id:${l.id}})">
+        <div class="thumb">${thumb}<div class="tags">${tags}</div></div>
+        <div class="lbody"><h3>${esc(l.title)}</h3>
+            ${s ? `<div class="seller-mini">${ava(s, 'xs')}<span>${esc(s.name)}</span>${s.rating ? `<span class="rate">${ic('star', 'i--fill i--s')}${s.rating.toFixed(1)}</span>` : ''}</div>` : ''}
+            ${plate(l.price, (l.vip ? 'plate--vip ' : '') + 'plate--s')}
+        </div></button>`;
+}
 
-    // ---------- Сторінка оголошення
-    VIEWS.listing = async ({ id }) => {
-        const { listing: l, reviews } = await api('/api/listings/' + id);
-        setTitle(l.project);
-        const img = l.image ? `<img src="${esc(media(l.image))}" class="detail-img">`
-                            : `<div class="detail-img ph">${CAT_EMOJI[l.category] || '📦'}</div>`;
-        const s = l.seller;
-        const revHtml = reviews.length ? reviews.map(r => `
-            <div class="review"><div class="row between"><b>${esc(r.author)}</b><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></div>
-            ${r.text ? `<div style="margin-top:4px">${esc(r.text)}</div>` : ''}</div>`).join('') : '<div class="muted">Відгуків поки немає</div>';
-
-        let actions;
-        if (l.is_mine) {
-            actions = `
-                <div class="btns" style="margin-bottom:8px">
-                    <button class="btn gold" onclick="openPromo(${l.id})">🚀 Просунути</button>
-                    <button class="btn secondary" onclick="go('sell', {edit: ${l.id}})">✏️ Редагувати</button>
-                </div>
-                <div class="btns">
-                    <button class="btn secondary" onclick="listingAction(this, ${l.id}, '${l.status === 'active' ? 'hide' : 'show'}')">${l.status === 'active' ? '🙈 Приховати' : '👁 Показати'}</button>
-                    <button class="btn red" onclick="listingAction(this, ${l.id}, 'delete')">🗑 Видалити</button>
-                </div>`;
-        } else if (l.qty > 0 && l.status === 'active') {
-            actions = `<div class="sticky-bottom"><button class="btn green" id="buyBtn">🔒 Купити безпечно за ${uah(l.price)}</button>
-                <div class="safe-note">Гроші заморозяться і підуть продавцю лише після твого підтвердження</div></div>`;
-        } else {
-            actions = '<div class="empty">Товар уже продано</div>';
-        }
-        return {
-            html: `
-                ${img}
-                <div class="row" style="gap:6px;margin-bottom:8px">${l.top ? '<span class="top-badge">ТОП</span>' : ''}${l.vip ? '<span class="vip-badge">VIP</span>' : ''}</div>
-                <h2 class="detail-title">${esc(l.title)}</h2>
-                <div class="detail-price">${uah(l.price)}</div>
-                <div class="muted" style="margin-bottom:14px">${esc(CFG.categories[l.category])} · в наявності: ${l.qty} · 👁 ${l.views}</div>
-                ${l.description ? `<div class="card desc">${esc(l.description)}</div>` : ''}
-                <div class="card row" onclick="go('user', {id: ${s.id}})" style="cursor:pointer">
-                    <div class="avatar">${initial(s.name)}</div>
-                    <div class="grow"><b>${esc(s.name)}</b><div class="muted">${ratingHtml(s)} · угод: ${s.deals}</div></div>
-                    <span class="muted">›</span>
-                </div>
-                ${actions}
-                <div class="section-title">Відгуки про продавця</div>
-                <div class="card">${revHtml}</div>
-                ${!l.is_mine ? `<div style="text-align:center;margin:14px 0"><a class="muted" onclick="openReport(${l.id})">🚩 Поскаржитись</a></div>` : ''}`,
-            after() {
-                const b = document.getElementById('buyBtn');
-                if (b) b.onclick = () => openBuy(l);
-            },
-        };
-    };
-
-    async function listingAction(btn, id, action) {
-        if (action === 'delete' && !(await confirmBox('Видалити оголошення назавжди?'))) return;
-        run(btn, async () => {
-            await api('/api/listings/' + id, { action });
-            toast(action === 'delete' ? 'Видалено' : 'Готово');
-            if (action === 'delete') back(); else render();
-        });
-    }
-
-    // ---------- Купівля
-    function openBuy(l) {
-        const id = l.id, price = l.price;
-        const enough = ME.balance >= price;
-        const need = price - ME.balance;
-        openSheet(`
-            <h3>🔒 Безпечна покупка</h3>
-            <div class="card"><b>${esc(l.title)}</b><div class="row between" style="margin-top:8px"><span class="muted">До оплати</span><b>${uah(price)}</b></div>
-            <div class="row between" style="margin-top:6px"><span class="muted">Твій баланс</span><b>${uah(ME.balance)}</b></div></div>
-            <div class="muted" style="margin-bottom:14px;line-height:1.5">
-            1. Гроші заморозяться на платформі.<br>2. Продавець передасть товар у грі (до ${CFG.delivery_hours} год).<br>
-            3. Ти перевіряєш і натискаєш «Отримав». Не передав — гроші повернуться автоматично.</div>
-            ${enough ? `<button class="btn green" id="payBtn">Оплатити ${uah(price)}</button>`
-                     : `<div class="fee-box" style="background:rgba(239,68,68,.1)">Не вистачає <b>${uah(need)}</b></div>
-                        <button class="btn" onclick="openTopup(${Math.max(need, CFG.min_topup)})">💳 Поповнити баланс</button>`}
-            <button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
-        const b = document.getElementById('payBtn');
-        if (b) b.onclick = () => run(b, async () => {
-            const d = await api(`/api/listings/${id}/buy`, {});
-            notifyHaptic('success');
-            closeSheet();
-            await refreshMe();
-            toast('Оплачено! Чекай передачу товару');
-            state.tab = 'deals';
-            state.stack = [{ name: 'deals', params: { role: 'buyer' } }, { name: 'deal', params: { id: d.deal_id } }];
-            render();
-        });
-    }
-
-    function openReport(id) {
-        openSheet(`<h3>🚩 Скарга</h3>
-            <label class="field"><span>Що не так з оголошенням?</span><textarea id="repText" placeholder="Шахрай, заборонений товар, обман…"></textarea></label>
-            <button class="btn red" id="repBtn">Надіслати</button><button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
-        const b = document.getElementById('repBtn');
-        b.onclick = () => run(b, async () => {
-            await api(`/api/listings/${id}/report`, { reason: document.getElementById('repText').value });
-            closeSheet(); toast('Скаргу надіслано модераторам');
-        });
-    }
-
-    // ---------- Продати / редагувати
-    VIEWS.sell = async ({ edit }) => {
-        let l = null;
-        if (edit) l = (await api('/api/listings/' + edit)).listing;
-        setTitle(l ? 'Редагування' : 'Нове оголошення');
-        const proj = l ? l.project : (state.project || CFG.projects[0].id);
-        const projOpts = CFG.projects.map(p => `<option ${p.id === proj ? 'selected' : ''}>${esc(p.id)}</option>`).join('');
-        const cat = l ? l.category : 'currency';
-        const cats = Object.entries(CFG.categories).map(([k, v]) => `<div class="filter-chip${k === cat ? ' active' : ''}" data-cat="${k}">${esc(v)}</div>`).join('');
-        let imageData = null, removeImage = false;
-        return {
-            html: `
-                <label class="field"><span>Проєкт</span><select id="fProject">${projOpts}</select></label>
-                <label class="field"><span>Категорія</span></label>
-                <div class="filters" id="fCats" style="margin-top:-8px">${cats}</div>
-                <label class="field"><span>Назва</span><input id="fTitle" maxlength="80" placeholder="Напр. 10 млн віртів (чисті, без бану)" value="${esc(l?.title || '')}"></label>
-                <label class="field"><span>Опис</span><textarea id="fDesc" maxlength="1500" placeholder="Сервер, деталі, як передаватимеш товар…">${esc(l?.description || '')}</textarea></label>
-                <div class="row">
-                    <label class="field grow"><span>Ціна, ₴</span><input id="fPrice" inputmode="decimal" placeholder="450" value="${l ? l.price / 100 : ''}"></label>
-                    <label class="field" style="width:110px"><span>Кількість</span><input id="fQty" inputmode="numeric" value="${l ? l.qty : 1}"></label>
-                </div>
-                <div class="fee-box" id="feeBox">Вкажи ціну — покажемо, скільки отримаєш.</div>
-                <label class="field"><span>Фото (необов'язково)</span></label>
-                <div class="img-picker" id="imgPick">${l?.image ? `<img src="${esc(media(l.image))}">` : '📷 Додати фото'}</div>
-                ${l?.image ? '<div style="text-align:right;margin-top:6px"><a class="muted" id="rmImg">Прибрати фото</a></div>' : ''}
-                <input type="file" id="fFile" accept="image/*" style="display:none"><br>
-                <button class="btn" id="saveBtn">${l ? '💾 Зберегти' : '📢 Опублікувати'}</button>
-                <div class="safe-note">Оплата йде тільки через безпечну угоду. Контакти для оплати «напряму» в описі — бан.</div>`,
-            after() {
-                let category = cat;
-                document.querySelectorAll('#fCats .filter-chip').forEach(c => c.onclick = () => {
-                    document.querySelector('#fCats .filter-chip.active').classList.remove('active');
-                    c.classList.add('active'); category = c.dataset.cat;
-                });
-                const priceEl = document.getElementById('fPrice');
-                const upd = () => {
-                    const p = parseMoney(priceEl.value);
-                    document.getElementById('feeBox').innerHTML = p
-                        ? `Покупець платить <b>${uah(p)}</b> · комісія сервісу ${CFG.commission_percent}% (${uah(feeFor(p))}) · ти отримаєш <b>${uah(p - feeFor(p))}</b>`
-                        : 'Вкажи ціну — покажемо, скільки отримаєш.';
-                };
-                priceEl.oninput = upd; upd();
-                const file = document.getElementById('fFile');
-                document.getElementById('imgPick').onclick = () => file.click();
-                file.onchange = async () => {
-                    if (!file.files[0]) return;
-                    try {
-                        imageData = await compressImage(file.files[0]);
-                        document.getElementById('imgPick').innerHTML = `<img src="${imageData}">`;
-                    } catch (e) { toast(e.message, true); }
-                };
-                const rm = document.getElementById('rmImg');
-                if (rm) rm.onclick = () => { removeImage = true; imageData = null; document.getElementById('imgPick').innerHTML = '📷 Додати фото'; rm.remove(); };
-                const btn = document.getElementById('saveBtn');
-                btn.onclick = () => run(btn, async () => {
-                    const body = {
-                        project: document.getElementById('fProject').value, category,
-                        title: document.getElementById('fTitle').value, description: document.getElementById('fDesc').value,
-                        price: priceEl.value.replace(',', '.'), qty: document.getElementById('fQty').value,
-                        image: imageData, remove_image: removeImage,
-                    };
-                    if (l) {
-                        await api('/api/listings/' + l.id, { action: 'edit', ...body });
-                        toast('Збережено'); back();
-                    } else {
-                        const d = await api('/api/listings', body);
-                        notifyHaptic('success');
-                        toast('Оголошення опубліковано!');
-                        state.project = body.project;
-                        state.tab = 'market';
-                        state.stack = [{ name: 'projects', params: {} }, { name: 'listings', params: { project: body.project } }, { name: 'listing', params: { id: d.id } }];
-                        render();
-                        setTimeout(() => openPromo(d.id, true), 600);
-                    }
-                });
-            },
-        };
-    };
-
-    function compressImage(f, max = 1080, q = 0.82) {
-        return new Promise((resolve, reject) => {
-            const r = new FileReader();
-            r.onload = () => {
-                const im = new Image();
-                im.onload = () => {
-                    const k = Math.min(1, max / Math.max(im.width, im.height));
-                    const c = document.createElement('canvas');
-                    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
-                    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-                    resolve(c.toDataURL('image/jpeg', q));
-                };
-                im.onerror = () => reject(new Error('Не вдалося прочитати фото'));
-                im.src = r.result;
-            };
-            r.onerror = () => reject(new Error('Не вдалося прочитати фото'));
-            r.readAsDataURL(f);
-        });
-    }
-
-    // ---------- Просування
-    function openPromo(id, afterCreate) {
-        const opts = Object.entries(CFG.promos).map(([k, p]) => `
-            <div class="promo-option">
-                <div class="promo-details"><h4>${esc(p.title)}</h4><p>${esc(p.desc)}</p></div>
-                <div class="promo-prices">
-                    <button class="pay-btn pay-uah" onclick="buyPromo(this, ${id}, '${k}', 'balance')">${uah(p.uah)}</button>
-                    <button class="pay-btn pay-stars" onclick="buyPromo(this, ${id}, '${k}', 'stars')">⭐ ${p.stars}</button>
-                </div>
-            </div>`).join('');
-        openSheet(`<h3>🚀 ${afterCreate ? 'Продай швидше!' : 'Просунути оголошення'}</h3>
-            ${afterCreate ? '<p class="muted" style="margin-top:-6px">VIP і ТОП-оголошення бачать першими — вони продаються в рази швидше.</p>' : ''}
-            ${opts}<p class="muted">₴ — списується з балансу · ⭐ — оплата Telegram Stars</p>
-            <button class="close-modal" onclick="closeSheet()">${afterCreate ? 'Пізніше' : 'Скасувати'}</button>`);
-    }
-
-    function buyPromo(btn, id, type, pay) {
-        run(btn, async () => {
-            if (pay === 'balance') {
-                const p = CFG.promos[type];
-                if (ME.balance < p.uah) { closeSheet(); return openTopup(Math.max(p.uah - ME.balance, CFG.min_topup)); }
-                if (!(await confirmBox(`${p.title} за ${uah(p.uah)} з балансу?`))) return;
-                await api('/api/promote', { listing_id: id, type, pay });
-                notifyHaptic('success'); closeSheet(); await refreshMe(); toast('Просування активовано 🚀'); render();
-            } else {
-                const d = await api('/api/promote', { listing_id: id, type, pay });
-                tg.openInvoice(d.invoice_link, status => {
-                    if (status === 'paid') { notifyHaptic('success'); closeSheet(); toast('Оплачено зірками ⭐'); setTimeout(render, 1500); }
-                    else if (status === 'failed') toast('Оплата не пройшла', true);
-                });
-            }
-        });
-    }
-
-    // ---------- Угоди
-    VIEWS.deals = async ({ role = 'buyer' }) => {
-        setTitle('Мої угоди');
-        const rows = await api('/api/deals?role=' + role);
-        const list = rows.length ? rows.map(d => `
-            <div class="card" onclick="go('deal', {id: ${d.id}})" style="cursor:pointer">
-                <div class="row between"><b class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.title)}</b>
-                <span class="status ${STATUS[d.status][1]}">${STATUS[d.status][0]}</span></div>
-                <div class="row between muted" style="margin-top:6px"><span>#${d.id} · ${esc(d.project)} · ${role === 'buyer' ? 'продавець' : 'покупець'} ${esc(d.other_name)}</span>
-                <b style="color:var(--text-color)">${uah(role === 'buyer' ? d.amount : d.amount - d.fee)}</b></div>
-                ${['paid', 'delivered'].includes(d.status) && d.deadline_at ? `<div class="muted" style="margin-top:4px">⏱ ${left(d.deadline_at)}</div>` : ''}
-            </div>`).join('') : `<div class="empty">${role === 'buyer' ? 'Ти ще нічого не купував' : 'Продажів поки немає'}</div>`;
-        return {
-            html: `<div class="seg"><button class="${role === 'buyer' ? 'active' : ''}" onclick="replace('deals', {role: 'buyer'})">🛒 Купую</button>
-                   <button class="${role === 'seller' ? 'active' : ''}" onclick="replace('deals', {role: 'seller'})">🏷 Продаю</button></div>${list}`,
-        };
-    };
-
-    VIEWS.deal = async ({ id }) => {
-        const D = await api('/api/deals/' + id);
-        const d = D.deal, role = D.role;
-        setTitle('Угода #' + d.id);
-        const other = role === 'buyer' ? D.seller : D.buyer;
-        const st = d.status;
-        const stepDone = { paid: 1, delivered: 2, dispute: 1, completed: 3, refunded: 1 }[st];
-        const steps = ['Оплачено', 'Передано', 'Завершено'].map((s, i) =>
-            `<div class="step ${i < stepDone ? 'done' : ''}"><i>${i < stepDone ? '✓' : i + 1}</i>${s}</div>`).join('');
-
-        let hint = '', actions = '';
-        if (role === 'seller') {
-            if (st === 'paid') {
-                hint = `Покупець оплатив. Передай товар у грі і натисни «Передав». Залишилось: <b>${left(d.deadline_at)}</b>`;
-                actions = `<button class="btn green" onclick="dealAction(this, ${d.id}, 'deliver')">📦 Я передав товар</button>
-                           <div class="btns" style="margin-top:8px"><button class="btn red" onclick="dealAction(this, ${d.id}, 'cancel')">Скасувати і повернути гроші</button></div>`;
-            } else if (st === 'delivered') {
-                hint = `Чекаємо підтвердження від покупця. Автозакриття на твою користь через <b>${left(d.deadline_at)}</b>`;
-                actions = `<button class="btn secondary" onclick="openDispute(${d.id})">⚖️ Відкрити спір</button>`;
-            }
-        } else if (role === 'buyer') {
-            if (st === 'paid') {
-                hint = `Гроші заморожені. Продавець має передати товар — залишилось <b>${left(d.deadline_at)}</b>, інакше гроші повернуться.`;
-                actions = `<div class="btns"><button class="btn green" onclick="dealAction(this, ${d.id}, 'confirm')">✅ Отримав</button>
-                           <button class="btn red" onclick="openDispute(${d.id})">⚖️ Спір</button></div>`;
-            } else if (st === 'delivered') {
-                hint = `Продавець передав товар. Перевір у грі! Якщо все ок — натисни «Отримав». Автозакриття через <b>${left(d.deadline_at)}</b>.`;
-                actions = `<button class="btn green" onclick="dealAction(this, ${d.id}, 'confirm')">✅ Отримав, все ок</button>
-                           <button class="btn red" style="margin-top:8px" onclick="openDispute(${d.id})">⚖️ Є проблема — відкрити спір</button>`;
-            }
-        }
-        if (st === 'dispute') hint = `⚖️ Йде спір: «${esc(d.dispute_reason)}». Гроші заморожені, адміністратор вирішить за перепискою нижче. Додай докази.`;
-        if (st === 'completed') hint = role === 'seller' ? `Угоду завершено. Тобі зараховано <b>${uah(d.payout)}</b>.` : 'Угоду завершено.';
-        if (st === 'refunded') hint = 'Угоду скасовано, гроші повернуто покупцю.';
-
-        let reviewHtml = '';
-        if (D.can_review) {
-            reviewHtml = `<div class="card"><b>Оціни продавця</b><div class="rating-pick" id="rPick" style="margin-top:8px">${[1, 2, 3, 4, 5].map(i => `<span data-v="${i}">★</span>`).join('')}</div>
-                <textarea id="rText" placeholder="Як пройшла угода?" style="min-height:60px"></textarea>
-                <button class="btn" id="rBtn" style="margin-top:8px">Залишити відгук</button></div>`;
-        } else if (D.review) {
-            reviewHtml = `<div class="card"><span class="stars">${'★'.repeat(D.review.rating)}</span> ${esc(D.review.text)}</div>`;
-        }
-        const myId = ME.id;
-        const msgHtml = m => {
-            if (m.sender_id === 0) return `<div class="msg sys">${esc(m.text)}</div>`;
-            if (m.sender_id === myId) return `<div class="msg me">${esc(m.text)}<small>${date(m.created_at)}</small></div>`;
-            if (m.sender_id !== d.buyer_id && m.sender_id !== d.seller_id) return `<div class="msg admin">🛡 <b>Адміністрація:</b> ${esc(m.text)}<small>${date(m.created_at)}</small></div>`;
-            return `<div class="msg other">${esc(m.text)}<small>${date(m.created_at)}</small></div>`;
-        };
-        let lastId = D.messages.length ? D.messages[D.messages.length - 1].id : 0;
-
-        return {
-            html: `
-                <div class="card">
-                    <div class="row between"><b class="grow">${esc(d.title)}</b><span class="status ${STATUS[st][1]}">${STATUS[st][0]}</span></div>
-                    <div class="muted" style="margin-top:6px">${esc(d.project)} · ${role === 'buyer' ? 'Продавець' : role === 'seller' ? 'Покупець' : 'Учасники'}:
-                        ${role === 'admin' ? esc(D.buyer.name) + ' → ' + esc(D.seller.name) : `<a onclick="go('user', {id: ${other.id}})">${esc(other.name)}</a>`}</div>
-                    <div class="row between" style="margin-top:10px"><span class="muted">Сума</span><b>${uah(d.amount)}</b></div>
-                    ${role !== 'buyer' ? `<div class="row between" style="margin-top:4px"><span class="muted">Комісія сервісу</span><span>−${uah(d.fee)}</span></div>
-                    <div class="row between" style="margin-top:4px"><span class="muted">Продавець отримає</span><b style="color:var(--green)">${uah(d.payout)}</b></div>` : ''}
-                    <div class="steps">${steps}</div>
-                </div>
-                ${hint ? `<div class="hero" style="margin-bottom:12px">${hint}</div>` : ''}
-                ${actions ? `<div style="margin-bottom:14px">${actions}</div>` : ''}
-                ${reviewHtml}
-                <div class="section-title">💬 Чат угоди</div>
-                <div class="card">
-                    <div class="chat" id="chat">${D.messages.map(msgHtml).join('')}</div>
-                    <div class="chat-input"><input id="chatIn" maxlength="1000" placeholder="Повідомлення…"><button class="btn" id="chatBtn">➤</button></div>
-                    <div class="safe-note">Не переходь в особисті та не плати напряму — інакше ми не зможемо допомогти у спорі.</div>
-                </div>`,
-            after() {
-                const chat = document.getElementById('chat');
-                chat.scrollTop = chat.scrollHeight;
-                const input = document.getElementById('chatIn'), btn = document.getElementById('chatBtn');
-                const send = () => run(btn, async () => {
-                    const text = input.value.trim();
-                    if (!text) return;
-                    await api(`/api/deals/${d.id}/message`, { text });
-                    input.value = '';
-                    await pull();
-                });
-                btn.onclick = send;
-                input.onkeydown = e => { if (e.key === 'Enter') send(); };
-                const seq = renderSeq;
-                const pull = async () => {
-                    const r = await api(`/api/deals/${d.id}?after=${lastId}`);
-                    if (seq !== renderSeq) return;
-                    if (r.messages.length) {
-                        const atBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 60;
-                        chat.insertAdjacentHTML('beforeend', r.messages.map(msgHtml).join(''));
-                        lastId = r.messages[r.messages.length - 1].id;
-                        if (atBottom) chat.scrollTop = chat.scrollHeight;
-                    }
-                    if (r.status !== st && input.value === '') render();
-                };
-                pollTimer = setInterval(() => pull().catch(() => {}), 4000);
-
-                const pick = document.getElementById('rPick');
-                if (pick) {
-                    let rating = 5;
-                    const paint = () => pick.querySelectorAll('span').forEach(s => s.classList.toggle('on', +s.dataset.v <= rating));
-                    pick.querySelectorAll('span').forEach(s => s.onclick = () => { rating = +s.dataset.v; paint(); haptic(); });
-                    paint();
-                    const rb = document.getElementById('rBtn');
-                    rb.onclick = () => run(rb, async () => {
-                        await api(`/api/deals/${d.id}/action`, { action: 'review', rating, text: document.getElementById('rText').value });
-                        toast('Дякуємо за відгук!'); render();
-                    });
-                }
-            },
-        };
-    };
-
-    async function dealAction(btn, id, action) {
-        const q = {
-            deliver: 'Підтверджуєш, що вже передав товар покупцю в грі?',
-            confirm: 'Підтверджуєш, що отримав товар? Гроші одразу підуть продавцю, повернути їх буде неможливо.',
-            cancel: 'Скасувати угоду? Гроші повернуться покупцю.',
-        }[action];
-        if (q && !(await confirmBox(q))) return;
-        run(btn, async () => {
-            await api(`/api/deals/${id}/action`, { action });
-            notifyHaptic('success');
-            await refreshMe();
-            render();
-        });
-    }
-
-    function openDispute(id) {
-        openSheet(`<h3>⚖️ Відкрити спір</h3>
-            <p class="muted">Гроші залишаться замороженими, поки адміністратор не розбереться. Опиши проблему і додай докази в чат угоди.</p>
-            <label class="field"><span>Що сталося?</span><textarea id="dispText" placeholder="Напр.: продавець не передав вірти, хоча натиснув «Передав»"></textarea></label>
-            <button class="btn red" id="dispBtn">Відкрити спір</button><button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
-        const b = document.getElementById('dispBtn');
-        b.onclick = () => run(b, async () => {
-            await api(`/api/deals/${id}/action`, { action: 'dispute', reason: document.getElementById('dispText').value });
-            closeSheet(); toast('Спір відкрито, адміністратор уже отримав сповіщення'); render();
-        });
-    }
-
-    // ---------- Профіль
-    VIEWS.profile = async () => {
-        setTitle('Профіль');
-        await refreshMe();
-        const [w, mine] = await Promise.all([api('/api/wallet'), api('/api/listings/my')]);
-        const myHtml = mine.length ? mine.map(l => `
-            <div class="card my-listing">
-                ${l.image ? `<img src="${esc(media(l.image))}">` : `<div class="ph">${CAT_EMOJI[l.category] || '📦'}</div>`}
-                <div class="grow" onclick="go('listing', {id: ${l.id}})" style="cursor:pointer">
-                    <b style="font-size:14px">${esc(l.title)}</b>
-                    <div class="muted">${uah(l.price)} · ${esc(l.project)} · 👁 ${l.views}${l.status === 'hidden' ? ' · 🙈 приховано' : ''}${l.qty <= 0 ? ' · продано' : ''}</div>
-                    <div class="muted">${l.top ? '📌 ТОП до ' + date(l.top_until) + ' ' : ''}${l.vip ? '👑 VIP до ' + date(l.vip_until) : ''}</div>
-                </div>
-                <button class="btn small gold" onclick="openPromo(${l.id})">🚀</button>
-            </div>`).join('') : '<div class="empty">У тебе ще немає оголошень<br><br><button class="btn small" onclick="setTab(\'sell\')">＋ Продати щось</button></div>';
-        const ledger = w.ledger.length ? w.ledger.map(x => `
-            <div class="ledger-row"><div><div>${LEDGER[x.kind] || x.kind}</div><div class="muted">${date(x.created_at)}</div></div>
-            <div class="${x.delta > 0 ? 'plus' : 'minus'}">${x.delta > 0 ? '+' : '−'}${uah(Math.abs(x.delta))}</div></div>`).join('') : '<div class="muted">Операцій ще не було</div>';
-        const wds = w.withdrawals.filter(x => x.status === 'pending').map(x => `<div class="fee-box">⏳ Заявка на виведення #${x.id} на ${uah(x.amount)} в обробці</div>`).join('');
-        return {
-            html: `
-                <div class="row" style="margin-bottom:16px">
-                    <div class="avatar big">${initial(ME.name)}</div>
-                    <div class="grow"><div style="font-size:18px;font-weight:700">${esc(ME.name)}</div>
-                    <div class="muted">${ratingHtml(ME)} · угод: ${ME.deals}</div>
-                    <a class="muted" onclick="go('user', {id: ${ME.id}})">Мій публічний профіль ›</a></div>
-                </div>
-                ${ME.banned ? '<div class="fee-box" style="background:rgba(239,68,68,.15)">🚫 Акаунт заблоковано адміністрацією</div>' : ''}
-                <div class="wallet">
-                    <div style="opacity:.85;font-size:13px">Баланс</div>
-                    <div class="sum">${uah(w.balance)}</div>
-                    <div class="sub"><span>🔒 В угодах: ${uah(w.held)}</span><span>⏳ Очікується: ${uah(w.incoming)}</span></div>
-                    <div class="btns"><button class="btn" onclick="openTopup()">💳 Поповнити</button><button class="btn" onclick="openWithdraw()">💸 Вивести</button></div>
-                </div>
-                ${wds}
-                <div class="section-title">📢 Мої оголошення (${mine.length})</div>
-                ${myHtml}
-                <div class="section-title">🧾 Історія операцій</div>
-                <div class="card">${ledger}</div>
-                <div class="btns" style="margin-top:10px"><button class="btn secondary" onclick="showRules()">🛡 Правила угод</button></div>`,
-        };
-    };
-
-    VIEWS.user = async ({ id }) => {
-        const d = await api('/api/users/' + id);
-        const u = d.user;
-        setTitle(u.name);
-        const revs = d.reviews.length ? d.reviews.map(r => `
-            <div class="review"><div class="row between"><b>${esc(r.author)}</b><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></div>
-            ${r.text ? `<div style="margin-top:4px">${esc(r.text)}</div>` : ''}<div class="muted">${date(r.created_at)}</div></div>`).join('') : '<div class="muted">Відгуків поки немає</div>';
-        return {
-            html: `
-                <div class="card row">
-                    <div class="avatar big">${initial(u.name)}</div>
-                    <div class="grow"><div style="font-size:18px;font-weight:700">${esc(u.name)}</div>
-                    <div class="muted">${ratingHtml(u)}</div><div class="muted">Угод: ${u.deals} · з ${new Date(u.since * 1000).toLocaleDateString('uk-UA')}</div></div>
-                </div>
-                ${d.banned ? '<div class="fee-box" style="background:rgba(239,68,68,.15)">🚫 Користувача заблоковано</div>' : ''}
-                <div class="section-title">Оголошення (${d.listings.length})</div>
-                ${d.listings.length ? `<div class="listings-grid">${d.listings.map(listingCard).join('')}</div>` : '<div class="muted">Немає активних оголошень</div>'}
-                <div class="section-title">Відгуки (${d.reviews.length})</div>
-                <div class="card">${revs}</div>`,
-        };
-    };
-
-    // ---------- Поповнення / виведення
-    function openTopup(suggest) {
-        if (!CFG.cryptopay) {
-            return openSheet(`<h3>💳 Поповнення</h3><p class="muted">Автоматичне поповнення поки не підключене. Напиши адміністратору в бота (/support).</p>
-                <button class="close-modal" onclick="closeSheet()">Закрити</button>`);
-        }
-        const val = suggest ? Math.ceil(suggest / 100) : '';
-        openSheet(`<h3>💳 Поповнити баланс</h3>
-            <label class="field"><span>Сума, ₴ (мін. ${uah(CFG.min_topup)})</span><input id="tAmount" inputmode="decimal" value="${val}" placeholder="500"></label>
-            <div class="presets">${[100, 250, 500, 1000].map(v => `<button class="btn small secondary" onclick="document.getElementById('tAmount').value=${v}">${v} ₴</button>`).join('')}</div>
-            <p class="muted">Оплата через @CryptoBot (USDT, TON). Рахунок у гривнях — бот сам порахує суму в криптовалюті. Баланс оновиться автоматично після оплати.</p>
-            <button class="btn" id="tBtn">Перейти до оплати</button>
-            <button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
-        const b = document.getElementById('tBtn');
-        b.onclick = () => run(b, async () => {
-            const d = await api('/api/topup', { amount: document.getElementById('tAmount').value.replace(',', '.') });
-            if (/^https:\/\/t\.me\//.test(d.url)) tg.openTelegramLink(d.url); else tg.openLink(d.url);
-            closeSheet();
-            watchBalance();
-        });
-    }
-
-    function watchBalance() {
-        const start = ME.balance;
-        let n = 0;
-        const t = setInterval(async () => {
-            if (++n > 36) return clearInterval(t);
-            try {
-                await refreshMe();
-                if (ME.balance > start) {
-                    clearInterval(t);
-                    notifyHaptic('success');
-                    toast('💰 Баланс поповнено: +' + uah(ME.balance - start));
-                    if (state.stack[state.stack.length - 1].name === 'profile') render();
-                }
-            } catch (e) {}
-        }, 5000);
-    }
-
-    function openWithdraw() {
-        const fee = CFG.withdraw_fee_percent;
-        openSheet(`<h3>💸 Вивести кошти</h3>
-            <div class="muted" style="margin-bottom:12px">Доступно: <b style="color:var(--text-color)">${uah(ME.balance)}</b> · мін. ${uah(CFG.min_withdraw)}${fee ? ` · комісія ${fee}%` : ''}</div>
-            <label class="field"><span>Сума, ₴</span><input id="wAmount" inputmode="decimal" placeholder="${ME.balance / 100}"></label>
-            <div class="radio">
-                ${CFG.cryptopay ? '<label><input type="radio" name="wm" value="cryptobot" checked><span>🤖 CryptoBot (USDT)</span></label>' : ''}
-                <label><input type="radio" name="wm" value="card" ${CFG.cryptopay ? '' : 'checked'}><span>💳 Картка</span></label>
+const SORTS = { new: 'Спочатку нові', cheap: 'Спочатку дешевші', expensive: 'Спочатку дорожчі' };
+VIEWS.listings = async ({ project }) => {
+    setTitle(esc(project));
+    feed = { project, category: '', q: '', sort: 'new', offset: 0 };
+    const chips = [['', 'Усе', 'grid'], ...Object.entries(CFG.categories).map(([k, v]) => [k, v, CAT_ICON[k]])]
+        .map(([k, v, i]) => `<button class="chip${k === '' ? ' on' : ''}" data-cat="${k}">${ic(i)}${esc(v)}</button>`).join('');
+    return {
+        html: `
+            <div class="filterbar">
+                <div class="search">${ic('search')}<input id="q" type="search" enterkeyhint="search" placeholder="Що шукаєш? Вірти, акаунт, дім…">
+                <button class="icon-btn" id="sortBtn" aria-label="Сортування">${ic('sort')}</button></div>
+                <div class="chips">${chips}</div>
             </div>
-            <label class="field" id="wCardBox" style="display:${CFG.cryptopay ? 'none' : 'block'}"><span>Номер картки</span><input id="wCard" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000"></label>
-            <p class="muted">Заявку перевіряє адміністратор, зазвичай до 24 год.</p>
-            <button class="btn" id="wBtn">Створити заявку</button>
-            <button class="close-modal" onclick="closeSheet()">Скасувати</button>`);
-        document.querySelectorAll('input[name=wm]').forEach(r => r.onchange = () => {
-            document.getElementById('wCardBox').style.display = r.value === 'card' && r.checked ? 'block' : 'none';
-        });
-        const b = document.getElementById('wBtn');
-        b.onclick = () => run(b, async () => {
-            const method = document.querySelector('input[name=wm]:checked').value;
-            await api('/api/withdraw', { amount: document.getElementById('wAmount').value.replace(',', '.'), method, details: document.getElementById('wCard').value });
-            closeSheet(); await refreshMe(); toast('Заявку створено ✅'); render();
-        });
+            <div class="grid" id="grid"></div>
+            <div id="more"></div>`,
+        after() {
+            document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+                if (c.classList.contains('on')) return;
+                haptic();
+                document.querySelector('.chip.on').classList.remove('on');
+                c.classList.add('on');
+                c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                feed.category = c.dataset.cat; loadFeed(true);
+            });
+            let t;
+            document.getElementById('q').oninput = e => { clearTimeout(t); t = setTimeout(() => { feed.q = e.target.value; loadFeed(true); }, 350); };
+            document.getElementById('sortBtn').onclick = openSort;
+            loadFeed(true);
+        },
+    };
+};
+
+function openSort() {
+    openSheet(`<h3>Сортування</h3>${Object.entries(SORTS).map(([k, v]) =>
+        `<button class="sort-opt${feed.sort === k ? ' on' : ''}" data-s="${k}">${v}${ic('check')}</button>`).join('')}<div style="height:8px"></div>`);
+    document.querySelectorAll('.sort-opt').forEach(b => b.onclick = () => {
+        feed.sort = b.dataset.s; haptic(); closeSheet(); loadFeed(true);
+    });
+}
+
+async function loadFeed(reset) {
+    const grid = document.getElementById('grid'), more = document.getElementById('more');
+    if (!grid) return;
+    const seq = renderSeq;
+    if (reset) { feed.offset = 0; grid.outerHTML = `<div id="grid">${skeletonGrid(4)}</div>`; more.innerHTML = ''; }
+    const p = new URLSearchParams({ project: feed.project, category: feed.category, q: feed.q, sort: feed.sort, offset: feed.offset });
+    try {
+        const d = await api('/api/listings?' + p);
+        if (seq !== renderSeq) return;
+        const g = document.getElementById('grid');
+        if (reset) { g.className = 'grid stagger'; g.innerHTML = ''; }
+        g.insertAdjacentHTML('beforeend', d.items.map((l, i) => listingCard(l, i)).join(''));
+        feed.offset += d.items.length;
+        const m = document.getElementById('more');
+        if (!feed.offset) {
+            m.innerHTML = feed.q || feed.category
+                ? `<div class="empty">${ic('search')}<p>Нічого не знайшли. Спробуй інший запит або категорію.</p></div>`
+                : `<div class="empty">${ic('store')}<p>У ${esc(feed.project)} ще ніхто нічого не продає. Твоє оголошення буде першим.</p><button class="btn btn--main btn--s" onclick="setTab('sell')">${ic('plus')}Додати оголошення</button></div>`;
+        } else {
+            m.innerHTML = d.more ? `<div style="margin-top:16px"><button class="btn btn--ghost" id="moreBtn">Показати ще</button></div>` : '';
+            const mb = document.getElementById('moreBtn');
+            if (mb) mb.onclick = () => run(mb, () => loadFeed(false));
+        }
+    } catch (e) {
+        const m = document.getElementById('more');
+        if (m) m.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message)}</p></div>`;
+        const g = document.getElementById('grid'); if (g && reset) g.innerHTML = '';
     }
+}
 
-    function showRules() {
-        openSheet(`<h3>🛡 Як працює безпечна угода</h3>
-            <div class="desc" style="font-size:14px">1️⃣ Ти оплачуєш товар з балансу — гроші <b>заморожуються</b> платформою, продавець їх ще не бачить.
-2️⃣ Продавець передає товар у грі й натискає «Передав» (має на це ${CFG.delivery_hours} год, інакше гроші повертаються тобі автоматично).
-3️⃣ Ти перевіряєш і натискаєш «Отримав» — тільки тоді гроші йдуть продавцю.
-⚖️ Щось не так? Відкрий спір — адміністратор розбереться за чатом угоди.
-⏱ Якщо покупець не відповідає ${CFG.confirm_hours} год після передачі — угода закривається на користь продавця.
+// ---------- Сторінка оголошення
+function reviewItem(r) {
+    const author = { id: r.author_id, name: r.author, photo: r.author_photo };
+    return `<div class="review">${ava(author, 's')}<div class="body">
+        <div class="head"><b>${esc(r.author)}</b>${stars(r.rating)}</div>
+        ${r.text ? `<p>${esc(r.text)}</p>` : ''}
+        <div class="deal">${r.deal_title ? ic('box', 'i--s') + `<span>${esc(r.deal_title)}</span>` : ''}<span style="margin-left:auto">${when(r.created_at)}</span></div>
+    </div></div>`;
+}
 
-❗ Ніколи не переходь в особисті та не плати напряму. Поза платформою ми не можемо захистити твої гроші.
-💼 Комісія сервісу — ${CFG.commission_percent}% з продавця, для покупця безкоштовно.</div>
-            <button class="close-modal" onclick="closeSheet()">Зрозуміло</button>`);
+VIEWS.listing = async ({ id }) => {
+    const { listing: l, reviews } = await api('/api/listings/' + id);
+    setTitle(esc(l.project));
+    const s = l.seller;
+    const tags = (l.top ? `<span class="tag tag--top">${ic('pin')}ТОП</span>` : '') + (l.vip ? `<span class="tag tag--vip">${ic('crown')}VIP</span>` : '');
+    let actions = '';
+    const canBuy = !l.is_mine && l.qty > 0 && l.status === 'active';
+    if (l.is_mine) {
+        actions = `<div class="actions" style="margin-top:16px">
+            <button class="btn btn--main" onclick="openPromo(${l.id})">${ic('rocket')}Просунути оголошення</button>
+            <div class="row-btns">
+                <button class="btn btn--ghost" onclick="go('sell',{edit:${l.id}})">${ic('edit')}Змінити</button>
+                <button class="btn btn--ghost" onclick="listingAction(this,${l.id},'${l.status === 'active' ? 'hide' : 'show'}')">${ic(l.status === 'active' ? 'eyeoff' : 'eye')}${l.status === 'active' ? 'Сховати' : 'Показати'}</button>
+            </div>
+            <button class="btn btn--danger" onclick="listingAction(this,${l.id},'delete')">${ic('trash')}Видалити</button>
+        </div>`;
+    } else if (!canBuy) {
+        actions = `<div class="hint hint--red">${ic('info')}<span>Товар уже продано або оголошення знято з продажу.</span></div>`;
     }
+    const revHtml = reviews.length ? reviews.map(reviewItem).join('') : `<p class="muted small">У продавця ще немає відгуків.</p>`;
+    return {
+        html: `
+            <div class="hero-img">${l.image ? imgTag(media(l.image), l.title) : phTag(l.category)}</div>
+            <div class="l-head">
+                ${tags ? `<div class="tags">${tags}</div>` : ''}
+                <h1>${esc(l.title)}</h1>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                    ${plate(l.price, 'plate--l' + (l.vip ? ' plate--vip' : ''))}
+                    <button class="icon-btn" id="shareBtn" aria-label="Поділитися">${ic('share')}</button>
+                </div>
+            </div>
+            <dl class="facts">
+                <div><dt>Категорія</dt><dd>${esc(CFG.categories[l.category])}</dd></div>
+                <div><dt>В наявності</dt><dd>${l.qty} шт.</dd></div>
+                <div><dt>Проєкт</dt><dd>${esc(l.project)}</dd></div>
+                <div><dt>Переглядів</dt><dd>${l.views}</dd></div>
+            </dl>
+            ${l.description ? `<div class="panel desc">${esc(l.description)}</div>` : ''}
+            ${actions}
+            <div class="sec-title">Продавець</div>
+            <div class="panel">
+                <button class="seller-card" onclick="go('user',{id:${s.id}})">
+                    ${ava(s, 'm')}
+                    <div class="grow"><b>${esc(s.name)}</b>
+                    <div class="small muted">${s.rating ? stars(s.rating) + ` ${s.rating.toFixed(1)}, ` : ''}${s.deals} ${plural(s.deals, W.deal)}</div>
+                    ${trust(s)}</div>${ic('next')}
+                </button>
+            </div>
+            <div class="sec-title">Відгуки про продавця ${s.reviews > reviews.length ? `<button class="link" onclick="go('user',{id:${s.id},tab:1})">Усі ${s.reviews}</button>` : ''}</div>
+            <div class="panel">${revHtml}</div>
+            ${!l.is_mine ? `<div style="text-align:center;margin:22px 0 6px"><button class="link" style="color:var(--muted)" onclick="openReport(${l.id})">${ic('flag', 'i--s')}Поскаржитися на оголошення</button></div>` : ''}
+            ${canBuy ? `<div class="buybar"><div><div class="small muted">До оплати</div><div style="font-family:var(--f-num);font-size:24px;font-weight:700;line-height:1.1">${uah(l.price)}</div></div>
+                <button class="btn btn--main shine" id="buyBtn">${ic('lock')}Купити безпечно</button></div>` : ''}`,
+        after() {
+            if (canBuy) { document.body.classList.add('has-buybar'); document.getElementById('buyBtn').onclick = () => openBuy(l); }
+            document.getElementById('shareBtn').onclick = () => shareLink('l', l.id, `${l.title}, ${uah(l.price)} — ${l.project}`);
+        },
+    };
+};
 
-    // ================================================================ старт
-    async function boot() {
-        if (!tg || !tg.initData) {
-            $main.innerHTML = '<div class="empty">🤖 Відкрий RP Market через Telegram-бота — так ми знаємо, що це саме ти, і захищаємо твої угоди.</div>';
-            document.getElementById('tabs').style.display = 'none';
+async function listingAction(btn, id, action) {
+    if (action === 'delete' && !(await confirmBox('Видалити оголошення? Відновити його не вийде.'))) return;
+    run(btn, async () => {
+        await api('/api/listings/' + id, { action });
+        toast({ delete: 'Оголошення видалено', hide: 'Оголошення сховано', show: 'Оголошення знову в стрічці' }[action]);
+        action === 'delete' ? back() : render('fade');
+    });
+}
+
+function openBuy(l) {
+    const enough = ME.balance >= l.price, need = l.price - ME.balance;
+    openSheet(`<h3>Безпечна покупка</h3>
+        <p class="lead">${esc(l.title)}</p>
+        <div class="sum-box">
+            <div class="line"><span class="muted">Ціна</span>${plate(l.price, 'plate--s')}</div>
+            <div class="line"><span class="muted">На балансі</span><b>${uah(ME.balance)}</b></div>
+            ${enough ? '' : `<div class="line" style="color:#FF7A7E"><span>Не вистачає</span><b>${uah(need)}</b></div>`}
+        </div>
+        <ol class="steps-list">
+            <li>Гроші замораживаються на маркеті, продавець їх поки не отримує.</li>
+            <li>Продавець передає товар у грі — на це в нього ${CFG.delivery_hours} год.</li>
+            <li>Ти перевіряєш і тиснеш «Отримав». Тільки тоді гроші йдуть продавцю.</li>
+        </ol>
+        ${enough ? `<button class="btn btn--main" id="payBtn">${ic('lock')}Оплатити ${uah(l.price)}</button>`
+                 : `<button class="btn btn--main" onclick="openTopup(${Math.max(need, CFG.min_topup)})">${ic('in')}Поповнити на ${uah(Math.max(need, CFG.min_topup))}</button>`}
+        ${sheetCancel()}`);
+    const b = document.getElementById('payBtn');
+    if (b) b.onclick = () => run(b, async () => {
+        const d = await api(`/api/listings/${l.id}/buy`, {});
+        closeSheet();
+        await refreshMe();
+        toast('Оплачено. Продавець уже отримав сповіщення');
+        state.tab = 'deals';
+        state.stack = [{ name: 'deals', params: {} }, { name: 'deal', params: { id: d.deal_id } }];
+        render('fwd');
+    });
+}
+
+function openReport(id) {
+    openSheet(`<h3>Скарга на оголошення</h3><p class="lead">Модератори перевірять оголошення і продавця.</p>
+        <label class="field"><span>Що не так?</span><textarea id="repText" maxlength="300" placeholder="Наприклад: просить оплату напряму, на карту"></textarea></label>
+        <button class="btn btn--danger" id="repBtn">${ic('flag')}Надіслати скаргу</button>${sheetCancel()}`);
+    const b = document.getElementById('repBtn');
+    b.onclick = () => run(b, async () => {
+        await api(`/api/listings/${id}/report`, { reason: document.getElementById('repText').value });
+        closeSheet(); toast('Скаргу надіслано модераторам');
+    });
+}
+
+// ---------- Продати / змінити
+VIEWS.sell = async ({ edit }) => {
+    let l = null;
+    if (edit) l = (await api('/api/listings/' + edit)).listing;
+    setTitle(l ? 'Зміна оголошення' : 'Нове оголошення');
+    let project = l ? l.project : (state.project || CFG.projects[0].id);
+    let category = l ? l.category : 'currency';
+    let imageData = null, removeImage = false;
+    const projs = CFG.projects.map(p => `<button type="button" class="${p.id === project ? 'on' : ''}" data-p="${esc(p.id)}"><img src="${esc(p.img)}" alt="" onerror="this.style.visibility='hidden'">${esc(p.id)}</button>`).join('');
+    const cats = Object.entries(CFG.categories).map(([k, v]) => `<button type="button" class="chip${k === category ? ' on' : ''}" data-cat="${k}">${ic(CAT_ICON[k])}${esc(v)}</button>`).join('');
+    return {
+        html: `
+            <div class="field"><span>Проєкт</span></div>
+            <div class="pick-proj" id="pp" style="margin-top:-8px">${projs}</div>
+            <div class="field" style="margin-bottom:0"><span>Що продаєш</span></div>
+            <div class="chips" id="pc" style="padding-top:0;margin-bottom:4px">${cats}</div>
+            <label class="field"><span>Назва <em id="tCnt" style="font-style:normal">0/80</em></span><input id="fTitle" maxlength="80" placeholder="10 млн віртів, чисті" value="${esc(l?.title || '')}"></label>
+            <label class="field"><span>Опис</span><textarea id="fDesc" maxlength="1500" placeholder="Сервер, деталі, як і коли передаси товар">${esc(l?.description || '')}</textarea></label>
+            <div class="row-btns">
+                <label class="field" style="flex:2"><span>Ціна, ₴</span><input id="fPrice" inputmode="decimal" placeholder="450" value="${l ? l.price / 100 : ''}"></label>
+                <label class="field"><span>Кількість</span><input id="fQty" inputmode="numeric" value="${l ? l.qty : 1}"></label>
+            </div>
+            <div class="payout" id="payout"></div>
+            <div class="field"><span>Фото</span></div>
+            <button type="button" class="drop" id="drop" style="margin-top:-8px">${l?.image ? `<img src="${esc(media(l.image))}" alt="">` : ic('image', 'i--l') + '<span>Додай скрін з гри — так продається швидше</span>'}</button>
+            ${l?.image ? `<div style="text-align:right;margin-top:8px"><button class="link" id="rmImg" style="color:var(--muted)">Прибрати фото</button></div>` : ''}
+            <input type="file" id="fFile" accept="image/*" hidden>
+            <div style="height:20px"></div>
+            <button class="btn btn--main" id="saveBtn">${l ? 'Зберегти зміни' : 'Опублікувати'}</button>
+            <p class="note">Оплата — лише через безпечну угоду. За прохання платити напряму оголошення видаляють, а акаунт блокують.</p>`,
+        after() {
+            document.querySelectorAll('#pp button').forEach(b => b.onclick = () => {
+                haptic(); document.querySelector('#pp .on')?.classList.remove('on'); b.classList.add('on'); project = b.dataset.p;
+            });
+            document.querySelectorAll('#pc .chip').forEach(c => c.onclick = () => {
+                haptic(); document.querySelector('#pc .on').classList.remove('on'); c.classList.add('on'); category = c.dataset.cat;
+            });
+            const title = document.getElementById('fTitle'), cnt = document.getElementById('tCnt');
+            const updCnt = () => cnt.textContent = `${title.value.length}/80`;
+            title.oninput = updCnt; updCnt();
+            const price = document.getElementById('fPrice');
+            const upd = () => {
+                const p = parseMoney(price.value), box = document.getElementById('payout');
+                box.innerHTML = p
+                    ? `<div><span class="muted">Покупець платить</span><span>${uah(p)}</span></div>
+                       <div><span class="muted">Комісія маркету ${CFG.commission_percent}%</span><span>−${uah(feeFor(p))}</span></div>
+                       <div><span>Ти отримаєш</span><b>${uah(p - feeFor(p))}</b></div>`
+                    : `<span class="muted">Вкажи ціну, і ми покажемо, скільки ти отримаєш після продажу.</span>`;
+            };
+            price.oninput = upd; upd();
+            const file = document.getElementById('fFile'), drop = document.getElementById('drop');
+            drop.onclick = () => file.click();
+            file.onchange = async () => {
+                if (!file.files[0]) return;
+                try {
+                    imageData = await compressImage(file.files[0]);
+                    drop.innerHTML = `<img src="${imageData}" alt="" class="fade" onload="this.classList.add('ok')">`;
+                    removeImage = false;
+                } catch (e) { toast(e.message, true); }
+            };
+            const rm = document.getElementById('rmImg');
+            if (rm) rm.onclick = () => { removeImage = true; imageData = null; drop.innerHTML = ic('image', 'i--l') + '<span>Додай скрін з гри</span>'; rm.remove(); };
+            const btn = document.getElementById('saveBtn');
+            btn.onclick = () => run(btn, async () => {
+                const body = { project, category, title: title.value, description: document.getElementById('fDesc').value,
+                               price: price.value.replace(',', '.'), qty: document.getElementById('fQty').value,
+                               image: imageData, remove_image: removeImage };
+                if (l) {
+                    await api('/api/listings/' + l.id, { action: 'edit', ...body });
+                    toast('Зміни збережено'); back();
+                } else {
+                    const d = await api('/api/listings', body);
+                    toast('Оголошення опубліковано');
+                    state.project = project; state.tab = 'market';
+                    state.stack = [{ name: 'home', params: {} }, { name: 'listings', params: { project } }, { name: 'listing', params: { id: d.id } }];
+                    await render('fwd');
+                    setTimeout(() => openPromo(d.id, true), 500);
+                }
+            });
+        },
+    };
+};
+
+function compressImage(f, max = 1280, q = 0.84) {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+            const im = new Image();
+            im.onload = () => {
+                const k = Math.min(1, max / Math.max(im.width, im.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+                c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+                resolve(c.toDataURL('image/jpeg', q));
+            };
+            im.onerror = () => reject(new Error('Не вдалося відкрити фото. Спробуй інше.'));
+            im.src = r.result;
+        };
+        r.onerror = () => reject(new Error('Не вдалося відкрити фото. Спробуй інше.'));
+        r.readAsDataURL(f);
+    });
+}
+
+// ---------- Просування
+function openPromo(id, fresh) {
+    const icons = { vip: 'crown', top: 'pin', bump: 'up' };
+    const opts = Object.entries(CFG.promos).map(([k, p]) => `
+        <div class="opt"><span class="sico ${k === 'vip' ? 'c-yellow' : k === 'top' ? 'c-blue' : 'c-green'}">${ic(icons[k])}</span>
+            <div class="grow"><h4>${esc(p.title)}</h4><p>${esc(p.desc)}</p></div>
+            <div class="pays">
+                <button class="pay pay--uah" onclick="buyPromo(this,${id},'${k}','balance')">${num(p.uah)} ₴</button>
+                <button class="pay pay--star" onclick="buyPromo(this,${id},'${k}','stars')">${ic('star', 'i--fill')}${p.stars}</button>
+            </div></div>`).join('');
+    openSheet(`<h3>${fresh ? 'Оголошення опубліковано' : 'Просування'}</h3>
+        <p class="lead">${fresh ? 'Хочеш продати швидше? Оголошення з VIP і в топі покупці бачать першими.' : 'Покажи оголошення більшій кількості покупців.'}</p>
+        ${opts}
+        <p class="note" style="margin:4px 0 0">Оплата з балансу в гривнях або зірками Telegram.</p>
+        ${sheetCancel(fresh ? 'Не зараз' : 'Закрити')}`);
+}
+
+function buyPromo(btn, id, type, pay) {
+    run(btn, async () => {
+        const p = CFG.promos[type];
+        if (pay === 'balance') {
+            if (ME.balance < p.uah) { closeSheet(); return setTimeout(() => openTopup(Math.max(p.uah - ME.balance, CFG.min_topup)), 300); }
+            if (!(await confirmBox(`${p.title} за ${uah(p.uah)}? Сума спишеться з балансу.`))) return;
+            await api('/api/promote', { listing_id: id, type, pay });
+            closeSheet(); await refreshMe(); toast(`${p.title}: увімкнено`); render('fade');
+        } else {
+            const d = await api('/api/promote', { listing_id: id, type, pay });
+            tg.openInvoice(d.invoice_link, status => {
+                if (status === 'paid') { closeSheet(); toast(`${p.title}: увімкнено`); setTimeout(() => render('fade'), 1200); }
+                else if (status === 'failed') toast('Оплата зірками не пройшла', true);
+            });
+        }
+    });
+}
+
+// ---------- Угоди
+VIEWS.deals = async ({ role = 'buyer' }) => {
+    setTitle('Мої угоди');
+    return {
+        html: `<div class="seg" id="dseg" style="--n:2;--v:${role === 'buyer' ? 0 : 1}">
+                <button data-r="buyer" class="${role === 'buyer' ? 'on' : ''}">Купую</button>
+                <button data-r="seller" class="${role === 'seller' ? 'on' : ''}">Продаю</button></div>
+               <div id="dlist"></div>`,
+        after() {
+            const seg = document.getElementById('dseg');
+            seg.querySelectorAll('button').forEach((b, i) => b.onclick = () => {
+                if (b.classList.contains('on')) return;
+                haptic(); seg.style.setProperty('--v', i);
+                seg.querySelector('.on').classList.remove('on'); b.classList.add('on');
+                state.stack[state.stack.length - 1].params.role = b.dataset.r;
+                loadDeals(b.dataset.r);
+            });
+            loadDeals(role);
+        },
+    };
+};
+
+async function loadDeals(role) {
+    const box = document.getElementById('dlist'), seq = renderSeq;
+    box.innerHTML = Array.from({ length: 4 }, () => '<div class="sk" style="height:68px;border-radius:16px;margin-bottom:10px"></div>').join('');
+    try {
+        const rows = await api('/api/deals?role=' + role);
+        if (seq !== renderSeq) return;
+        if (!rows.length) {
+            box.innerHTML = role === 'buyer'
+                ? `<div class="empty">${ic('swap')}<p>Тут з'являться твої покупки. Гроші в кожній захищені до підтвердження.</p><button class="btn btn--main btn--s" onclick="setTab('market')">Перейти на ринок</button></div>`
+                : `<div class="empty">${ic('coins')}<p>Продажів поки немає. Додай оголошення, і покупці знайдуть тебе тут.</p><button class="btn btn--main btn--s" onclick="setTab('sell')">${ic('plus')}Продати</button></div>`;
             return;
         }
-        tg.ready();
-        tg.expand();
-        try { tg.setHeaderColor('secondary_bg_color'); } catch (e) {}
-        tg.BackButton.onClick(back);
+        box.className = 'stagger';
+        box.innerHTML = rows.map((d, i) => {
+            const st = STATUS[d.status];
+            const active = ['paid', 'delivered'].includes(d.status) && d.deadline_at;
+            return `<button class="drow" style="--i:${i}" onclick="go('deal',{id:${d.id}})">
+                <span class="sico ${st.c}">${ic(st.i)}</span>
+                <div class="grow"><b>${esc(d.title)}</b>
+                <div class="meta">${role === 'buyer' ? 'Продавець' : 'Покупець'}: ${esc(d.other_name)}</div>
+                ${active ? `<div class="timer">${ic('clock')}${left(d.deadline_at)}</div>` : `<div class="meta">${st.t}</div>`}</div>
+                <div class="right">${plate(role === 'buyer' ? d.amount : d.amount - d.fee, 'plate--s')}</div>
+            </button>`;
+        }).join('');
+    } catch (e) { box.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message)}</p></div>`; }
+}
+
+VIEWS.deal = async ({ id }) => {
+    const D = await api('/api/deals/' + id);
+    const d = D.deal, role = D.role, st = d.status, S = STATUS[st];
+    setTitle('Угода №' + d.id);
+    const other = role === 'buyer' ? D.seller : D.buyer;
+    const reached = { paid: 1, delivered: 2, dispute: 1, completed: 3, refunded: 1 }[st];
+    const labels = ['Оплачено', 'Передано', st === 'refunded' ? 'Повернено' : 'Завершено'];
+    const steps = labels.map((t, i) => `<div class="tstep ${i < reached ? 'done' : ''}" style="--i:${i}"><span class="dot">${ic('check')}</span>${t}</div>`).join('');
+    const pct = st === 'refunded' ? 0 : [0, 0, 50, 100][reached];
+
+    let hint = '', hintCls = '', actions = '';
+    if (role === 'seller' && st === 'paid') {
+        hint = `Покупець оплатив. Передай товар у грі й натисни кнопку нижче. Залишилось ${left(d.deadline_at)}, потім гроші автоматично повернуться покупцю.`;
+        actions = `<button class="btn btn--green" onclick="dealAction(this,${d.id},'deliver')">${ic('box')}Я передав товар</button>
+                   <button class="btn btn--danger" onclick="dealAction(this,${d.id},'cancel')">Скасувати угоду</button>`;
+    } else if (role === 'seller' && st === 'delivered') {
+        hint = `Чекаємо, поки покупець перевірить товар. Якщо він не відповість за ${left(d.deadline_at)}, гроші прийдуть тобі автоматично.`;
+        actions = `<button class="btn btn--ghost" onclick="openDispute(${d.id})">${ic('scale')}Відкрити спір</button>`;
+    } else if (role === 'buyer' && st === 'paid') {
+        hint = `Гроші заморожені. Продавець має передати товар за ${left(d.deadline_at)} — інакше гроші повернуться тобі.`;
+        actions = `<div class="row-btns"><button class="btn btn--green" onclick="dealAction(this,${d.id},'confirm')">${ic('check')}Отримав</button>
+                   <button class="btn btn--danger" onclick="openDispute(${d.id})">${ic('scale')}Спір</button></div>`;
+    } else if (role === 'buyer' && st === 'delivered') {
+        hint = `Продавець каже, що передав товар. Перевір у грі. Якщо все гаразд — підтверди. Автозакриття через ${left(d.deadline_at)}.`;
+        actions = `<button class="btn btn--green shine" onclick="dealAction(this,${d.id},'confirm')">${ic('check')}Отримав, усе гаразд</button>
+                   <button class="btn btn--danger" onclick="openDispute(${d.id})">${ic('scale')}Є проблема</button>`;
+    }
+    if (st === 'dispute') { hint = `Відкрито спір: «${esc(d.dispute_reason)}». Гроші заморожені, поки адміністратор не прийме рішення. Додай у чат скріни, які підтверджують твою позицію.`; hintCls = 'hint--red'; }
+    if (st === 'completed') { hint = role === 'seller' ? `Угоду завершено. На баланс зараховано ${uah(d.payout)}.` : 'Угоду завершено. Дякуємо, що купуєш безпечно.'; hintCls = 'hint--green'; }
+    if (st === 'refunded') { hint = `Угоду скасовано, ${uah(d.amount)} повернуто покупцю.`; hintCls = ''; }
+
+    let review = '';
+    if (D.can_review) {
+        review = `<div class="panel" style="margin-top:12px"><b>Як усе пройшло?</b><div class="small muted">Відгук побачать інші покупці у профілі продавця.</div>
+            <div class="rate-pick" id="rPick">${[1, 2, 3, 4, 5].map(i => `<button data-v="${i}" aria-label="${i}">${ic('star', 'i--fill')}</button>`).join('')}</div>
+            <textarea id="rText" maxlength="500" placeholder="Швидко передав, усе чесно" style="min-height:70px"></textarea>
+            <button class="btn btn--main" id="rBtn" style="margin-top:10px">Залишити відгук</button></div>`;
+    } else if (D.review) {
+        review = `<div class="panel" style="margin-top:12px"><div class="small muted" style="margin-bottom:6px">Твій відгук</div>${stars(D.review.rating)}${D.review.text ? `<p style="margin-top:6px">${esc(D.review.text)}</p>` : ''}</div>`;
+    }
+
+    const myId = ME.id;
+    const msgHtml = m => {
+        if (m.sender_id === 0) return `<div class="msg sys">${esc(m.text)}</div>`;
+        if (m.sender_id === myId) return `<div class="msg me">${esc(m.text)}<time>${hm(m.created_at)}</time></div>`;
+        if (m.sender_id !== d.buyer_id && m.sender_id !== d.seller_id) return `<div class="msg adm"><strong>Адміністрація</strong>${esc(m.text)}<time>${hm(m.created_at)}</time></div>`;
+        return `<div class="msg them">${esc(m.text)}<time>${hm(m.created_at)}</time></div>`;
+    };
+    let lastId = D.messages.length ? D.messages[D.messages.length - 1].id : 0;
+
+    return {
+        html: `
+            <div class="panel">
+                <div class="deal-top"><h1>${esc(d.title)}</h1><span class="status ${S.c}">${ic(S.i)}${S.t}</span></div>
+                <div class="money">
+                    <div><span class="muted">Сума</span>${plate(d.amount, 'plate--s')}</div>
+                    ${role !== 'buyer' ? `<div><span class="muted">Комісія маркету</span><span>−${uah(d.fee)}</span></div>
+                    <div><span class="muted">Продавець отримає</span><b style="color:var(--green)">${uah(d.payout)}</b></div>` : ''}
+                    <div><span class="muted">${role === 'buyer' ? 'Продавець' : role === 'seller' ? 'Покупець' : 'Учасники'}</span>
+                    ${role === 'admin' ? `<span>${esc(D.buyer.name)} і ${esc(D.seller.name)}</span>` : `<button class="link" onclick="go('user',{id:${other.id}})">${esc(other.name)}</button>`}</div>
+                </div>
+                <div class="track-steps"><div class="line"><i id="trackFill"></i></div>${steps}</div>
+            </div>
+            ${hint ? `<div class="hint ${hintCls}">${ic(st === 'dispute' ? 'scale' : st === 'completed' ? 'check' : 'info')}<span>${hint}</span></div>` : ''}
+            ${actions ? `<div class="actions">${actions}</div>` : ''}
+            ${review}
+            <div class="sec-title">Чат угоди</div>
+            <div class="panel">
+                <div class="chat" id="chat">${D.messages.map(msgHtml).join('')}</div>
+                <div class="composer"><input id="chatIn" maxlength="1000" placeholder="Напиши повідомлення" enterkeyhint="send"><button class="send" id="chatBtn" aria-label="Надіслати">${ic('send')}</button></div>
+                <p class="note">Пиши тільки тут. Якщо виникне спір, адміністратор вирішуватиме за цим чатом.</p>
+            </div>`,
+        after() {
+            requestAnimationFrame(() => { const f = document.getElementById('trackFill'); if (f) f.style.width = pct + '%'; });
+            const chat = document.getElementById('chat');
+            chat.scrollTop = chat.scrollHeight;
+            const input = document.getElementById('chatIn'), btn = document.getElementById('chatBtn');
+            const seq = renderSeq;
+            const pull = async () => {
+                const r = await api(`/api/deals/${d.id}?after=${lastId}`);
+                if (seq !== renderSeq) return;
+                if (r.messages.length) {
+                    const atBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
+                    chat.insertAdjacentHTML('beforeend', r.messages.map(msgHtml).join(''));
+                    lastId = r.messages[r.messages.length - 1].id;
+                    if (atBottom) chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+                    if (r.messages.some(m => m.sender_id !== myId)) haptic('soft');
+                }
+                if (r.status !== st && !input.value) { await refreshMe(); render('fade'); }
+            };
+            const send = async () => {
+                const text = input.value.trim();
+                if (!text || btn.disabled) return;
+                btn.disabled = true;
+                try { await api(`/api/deals/${d.id}/message`, { text }); input.value = ''; await pull(); }
+                catch (e) { toast(e.message, true); }
+                finally { btn.disabled = false; }
+            };
+            btn.onclick = send;
+            input.onkeydown = e => { if (e.key === 'Enter') send(); };
+            pollTimer = setInterval(() => pull().catch(() => {}), 4000);
+
+            const pick = document.getElementById('rPick');
+            if (pick) {
+                let rating = 5;
+                const paint = () => pick.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.v <= rating));
+                pick.querySelectorAll('button').forEach(b => b.onclick = () => { rating = +b.dataset.v; paint(); haptic(); });
+                paint();
+                const rb = document.getElementById('rBtn');
+                rb.onclick = () => run(rb, async () => {
+                    await api(`/api/deals/${d.id}/action`, { action: 'review', rating, text: document.getElementById('rText').value });
+                    toast('Відгук опубліковано'); render('fade');
+                });
+            }
+        },
+    };
+};
+
+async function dealAction(btn, id, action) {
+    const q = {
+        deliver: 'Ти вже передав товар покупцю в грі?',
+        confirm: 'Підтвердити отримання? Гроші одразу підуть продавцю, і повернути їх через маркет буде неможливо.',
+        cancel: 'Скасувати угоду? Гроші повернуться покупцю.',
+    }[action];
+    if (q && !(await confirmBox(q))) return;
+    run(btn, async () => {
+        await api(`/api/deals/${id}/action`, { action });
+        toast({ deliver: 'Покупця повідомлено про передачу', confirm: 'Угоду завершено', cancel: 'Угоду скасовано' }[action]);
+        await refreshMe(); render('fade');
+    });
+}
+
+function openDispute(id) {
+    openSheet(`<h3>Відкрити спір</h3><p class="lead">Гроші залишаться замороженими, а адміністратор розбереться за чатом угоди. Опиши, що сталося.</p>
+        <label class="field"><span>Що пішло не так?</span><textarea id="dispText" maxlength="500" placeholder="Продавець натиснув «Передав», але вірти не прийшли"></textarea></label>
+        <button class="btn btn--danger" id="dispBtn">${ic('scale')}Відкрити спір</button>${sheetCancel()}`);
+    const b = document.getElementById('dispBtn');
+    b.onclick = () => run(b, async () => {
+        await api(`/api/deals/${id}/action`, { action: 'dispute', reason: document.getElementById('dispText').value });
+        closeSheet(); toast('Спір відкрито. Адміністратор уже отримав сповіщення'); render('fade');
+    });
+}
+
+// ---------- Профілі
+function profileHead(u, isMe) {
+    const since = new Date(u.since * 1000).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+    return `<section class="pf">
+        <div class="pf-road"></div>
+        <div class="pf-main">
+            ${ava(u, 'xl')}
+            <div class="pf-actions">
+                ${isMe ? `<button class="icon-btn" onclick="openBio()" aria-label="Змінити опис">${ic('edit')}</button>` : ''}
+                <button class="icon-btn" id="pfShare" aria-label="Поділитися профілем">${ic('share')}</button>
+            </div>
+            <h1>${esc(u.name)}</h1>
+            <div class="pf-since">На маркеті з ${since}</div>
+            ${trust(u)}
+            <p class="pf-bio ${u.bio ? '' : 'empty-bio'}" id="pfBio">${u.bio ? esc(u.bio) : (isMe ? 'Розкажи покупцям про себе: на якому сервері граєш, як швидко передаєш товар.' : '')}</p>
+            <div class="stats">
+                <div><b>${u.rating ? ic('star', 'i--fill') + u.rating.toFixed(1) : '—'}</b><span>рейтинг</span></div>
+                <div><b>${u.deals}</b><span>${plural(u.deals, W.deal)}</span></div>
+                <div><b>${u.reviews}</b><span>${plural(u.reviews, W.review)}</span></div>
+            </div>
+        </div></section>`;
+}
+
+function ratingSummary(u, dist) {
+    const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
+    return `<div class="panel rsum">
+        <div class="avg"><b>${u.rating ? u.rating.toFixed(1) : '—'}</b>${stars(u.rating || 0)}<div class="small muted" style="margin-top:4px">${u.reviews} ${plural(u.reviews, W.review)}</div></div>
+        <div class="bars">${[5, 4, 3, 2, 1].map(r => `<div class="bar"><span>${r}</span><div class="track"><div class="fill" data-w="${(dist[r] / total) * 100}"></div></div><span>${dist[r]}</span></div>`).join('')}</div>
+    </div>`;
+}
+function animateBars() { requestAnimationFrame(() => document.querySelectorAll('.bar .fill').forEach(f => f.style.width = f.dataset.w + '%')); }
+
+function setupTabs(segId, onShow) {
+    const seg = document.getElementById(segId);
+    seg.querySelectorAll('button').forEach((b, i) => b.onclick = () => {
+        if (b.classList.contains('on')) return;
+        haptic(); seg.style.setProperty('--v', i);
+        seg.querySelector('.on').classList.remove('on'); b.classList.add('on');
+        document.querySelectorAll(`[data-panel="${segId}"]`).forEach((p, j) => {
+            p.hidden = j !== i;
+            if (j === i) { p.classList.remove('page', 'enter-fade'); void p.offsetWidth; p.classList.add('page', 'enter-fade'); }
+        });
+        onShow && onShow(i);
+    });
+}
+
+VIEWS.user = async ({ id, tab = 0 }) => {
+    const d = await api('/api/users/' + id);
+    if (d.is_me && state.stack.length === 1) return VIEWS.me();
+    const u = d.user;
+    setTitle(esc(u.name));
+    const listings = d.listings.length ? `<div class="grid stagger">${d.listings.map((l, i) => listingCard(l, i)).join('')}</div>`
+        : `<div class="empty">${ic('store')}<p>Зараз у продавця немає активних оголошень.</p></div>`;
+    const reviews = d.reviews.length ? `${ratingSummary(u, d.distribution)}<div class="panel">${d.reviews.map(reviewItem).join('')}</div>`
+        : `<div class="empty">${ic('star')}<p>Відгуків поки немає. Вони з'являються після завершених угод.</p></div>`;
+    return {
+        html: `${profileHead(u, d.is_me)}
+            ${d.banned ? `<div class="hint hint--red">${ic('alert')}<span>Акаунт заблоковано адміністрацією. Не купуй у цього продавця.</span></div>` : ''}
+            <div class="seg" id="useg" style="--n:2;--v:${tab};margin-top:20px">
+                <button class="${tab === 0 ? 'on' : ''}">Оголошення ${d.listings.length}</button>
+                <button class="${tab === 1 ? 'on' : ''}">Відгуки ${u.reviews}</button></div>
+            <div data-panel="useg" ${tab === 0 ? '' : 'hidden'}>${listings}</div>
+            <div data-panel="useg" ${tab === 1 ? '' : 'hidden'}>${reviews}</div>`,
+        after() {
+            setupTabs('useg', i => i === 1 && animateBars());
+            if (tab === 1) animateBars();
+            document.getElementById('pfShare').onclick = () => shareLink('u', u.id, `Профіль продавця ${u.name} на RP Market`);
+        },
+    };
+};
+
+VIEWS.me = async () => {
+    setTitle('Профіль');
+    await refreshMe();
+    const [w, mine, pub] = await Promise.all([api('/api/wallet'), api('/api/listings/my'), api('/api/users/' + ME.id)]);
+    const u = pub.user;
+    const now = Date.now() / 1000;
+    const mineHtml = mine.length ? `<div class="stagger">${mine.map((l, i) => `
+        <div class="mine" style="--i:${i}">
+            <button class="thumbs" onclick="go('listing',{id:${l.id}})">${l.image ? imgTag(media(l.image)) : phTag(l.category)}</button>
+            <button class="grow" onclick="go('listing',{id:${l.id}})"><b>${esc(l.title)}</b>
+                <div class="meta">${plate(l.price, 'plate--s')}
+                ${l.vip ? `<span class="pill pill--vip">${ic('crown')}до ${new Date(l.vip_until * 1000).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })}</span>` : ''}
+                ${l.top ? `<span class="pill pill--top">${ic('pin')}до ${new Date(l.top_until * 1000).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })}</span>` : ''}
+                ${l.status === 'hidden' ? `<span class="pill">${ic('eyeoff')}сховано</span>` : ''}
+                ${l.qty <= 0 ? `<span class="pill">продано</span>` : ''}
+                <span class="pill">${ic('eye')}${l.views}</span></div></button>
+            <button class="icon-btn" style="background:var(--mark);color:var(--ink);border:0" onclick="openPromo(${l.id})" aria-label="Просунути">${ic('rocket')}</button>
+        </div>`).join('')}</div>`
+        : `<div class="empty">${ic('store')}<p>У тебе ще немає оголошень. Перше займе хвилину.</p><button class="btn btn--main btn--s" onclick="setTab('sell')">${ic('plus')}Продати</button></div>`;
+    const ledger = w.ledger.length ? `<div class="panel">${w.ledger.map(x => {
+        const [t, i] = LEDGER[x.kind] || [x.kind, 'info'];
+        return `<div class="ledger"><span class="sico ${x.delta > 0 ? 'c-green' : 'c-grey'}">${ic(i)}</span>
+            <div class="grow"><div>${t}</div><div class="small muted">${when(x.created_at)}</div></div>
+            <div class="amt ${x.delta > 0 ? 'plus' : 'minus'}">${x.delta > 0 ? '+' : '−'}${num(Math.abs(x.delta))} ₴</div></div>`;
+    }).join('')}</div>` : `<div class="empty">${ic('wallet')}<p>Тут буде історія поповнень, покупок і продажів.</p></div>`;
+    const reviews = u.reviews ? `${ratingSummary(u, pub.distribution)}<div class="panel">${pub.reviews.map(reviewItem).join('')}</div>`
+        : `<div class="empty">${ic('star')}<p>Відгуки залишають покупці після завершених угод.</p></div>`;
+    const pending = w.withdrawals.filter(x => x.status === 'pending')
+        .map(x => `<div class="hint">${ic('clock')}<span>Заявка на виведення ${uah(x.amount)} в обробці. Зазвичай до 24 годин.</span></div>`).join('');
+    const from = shownBalance ?? 0;
+    shownBalance = w.balance;
+    return {
+        html: `${profileHead(u, true)}
+            ${ME.banned ? `<div class="hint hint--red">${ic('alert')}<span>Акаунт заблоковано адміністрацією. Напиши в підтримку через бота.</span></div>` : ''}
+            <div class="wallet">
+                ${plate(w.balance)}
+                <label>Баланс</label>
+                <div class="sum"><span id="wSum">${num(from)}</span> ₴</div>
+                <div class="sub"><div>У відкритих покупках<b>${uah(w.held)}</b></div><div>Очікується з продажів<b>${uah(w.incoming)}</b></div></div>
+                <div class="row-btns"><button class="btn btn--main" onclick="openTopup()">${ic('in')}Поповнити</button>
+                <button class="btn btn--ghost" onclick="openWithdraw()">${ic('out')}Вивести</button></div>
+            </div>
+            ${pending}
+            <div class="seg" id="mseg" style="--n:3;margin-top:20px">
+                <button class="on">Оголошення</button><button>Відгуки</button><button>Історія</button></div>
+            <div data-panel="mseg">${mineHtml}</div>
+            <div data-panel="mseg" hidden>${reviews}</div>
+            <div data-panel="mseg" hidden>${ledger}</div>
+            <div style="margin-top:20px"><button class="btn btn--ghost" onclick="showRules()">${ic('shield')}Як працює безпечна угода</button></div>`,
+        after() {
+            countUp(document.getElementById('wSum'), from, w.balance, 900);
+            setupTabs('mseg', i => i === 1 && animateBars());
+            document.getElementById('pfShare').onclick = () => shareLink('u', u.id, `Мій профіль продавця на RP Market`);
+        },
+    };
+};
+
+function openBio() {
+    openSheet(`<h3>Про себе</h3><p class="lead">Покупці бачать це у твоєму профілі.</p>
+        <label class="field"><span>Опис <em id="bioCnt" style="font-style:normal"></em></span>
+        <textarea id="bioText" maxlength="300" placeholder="Граю на Ukraine GTA з 2024 року. Передаю вірти протягом 15 хвилин.">${esc(ME.bio || '')}</textarea></label>
+        <button class="btn btn--main" id="bioBtn">Зберегти</button>${sheetCancel()}`);
+    const t = document.getElementById('bioText'), c = document.getElementById('bioCnt');
+    const u = () => c.textContent = `${t.value.length}/300`; t.oninput = u; u();
+    const b = document.getElementById('bioBtn');
+    b.onclick = () => run(b, async () => {
+        const d = await api('/api/profile', { bio: t.value });
+        ME.bio = d.bio; closeSheet(); toast('Опис збережено'); render('fade');
+    });
+}
+
+// ---------- Поповнення / виведення
+function openTopup(suggest) {
+    if (!CFG.cryptopay) {
+        return openSheet(`<h3>Поповнення</h3><p class="lead">Автоматичне поповнення ще не підключене. Напиши в підтримку через бота командою /support — адміністратор поповнить баланс вручну.</p>${sheetCancel('Зрозуміло')}`);
+    }
+    const val = suggest ? Math.ceil(suggest / 100) : '';
+    openSheet(`<h3>Поповнити баланс</h3><p class="lead">Оплата через @CryptoBot у USDT або TON. Рахунок у гривнях — бот сам перерахує суму.</p>
+        <label class="field"><span>Сума, ₴ <em style="font-style:normal">від ${uah(CFG.min_topup)}</em></span><input id="tAmount" inputmode="decimal" value="${val}" placeholder="500"></label>
+        <div class="presets">${[100, 250, 500, 1000].map(v => `<button data-v="${v}">${v}</button>`).join('')}</div>
+        <button class="btn btn--main" id="tBtn">${ic('bot')}Перейти до оплати</button>${sheetCancel()}`);
+    document.querySelectorAll('.presets button').forEach(b => b.onclick = () => { document.getElementById('tAmount').value = b.dataset.v; haptic(); });
+    const b = document.getElementById('tBtn');
+    b.onclick = () => run(b, async () => {
+        const d = await api('/api/topup', { amount: document.getElementById('tAmount').value.replace(',', '.') });
+        /^https:\/\/t\.me\//.test(d.url) ? tg.openTelegramLink(d.url) : tg.openLink(d.url);
+        closeSheet(); toast('Після оплати баланс оновиться сам'); watchBalance();
+    });
+}
+
+function watchBalance() {
+    const start = ME.balance; let n = 0;
+    const t = setInterval(async () => {
+        if (++n > 36) return clearInterval(t);
         try {
             await refreshMe();
-        } catch (e) {
-            $main.innerHTML = `<div class="empty">⚠️ ${esc(e.message)}</div>`;
-            return;
-        }
-        // Діплінки: ?deal=12 / ?listing=5 або startapp=deal_12 / l_5
-        const qs = new URLSearchParams(location.search);
-        const sp = tg.initDataUnsafe.start_param || '';
-        const dealId = qs.get('deal') || (sp.startsWith('deal_') ? sp.slice(5) : null);
-        const listingId = qs.get('listing') || (sp.startsWith('l_') ? sp.slice(2) : null);
-        if (dealId && /^\d+$/.test(dealId)) {
-            state.tab = 'deals';
-            state.stack = [{ name: 'deals', params: {} }, { name: 'deal', params: { id: +dealId } }];
-            render();
-        } else if (listingId && /^\d+$/.test(listingId)) {
-            state.tab = 'market';
-            state.stack = [{ name: 'projects', params: {} }, { name: 'listing', params: { id: +listingId } }];
-            render();
-        } else {
-            setTab('market');
-        }
+            if (ME.balance > start) {
+                clearInterval(t); toast('Баланс поповнено на ' + uah(ME.balance - start));
+                if (state.stack[state.stack.length - 1].name === 'me') render('fade');
+            }
+        } catch (e) {}
+    }, 5000);
+}
+
+function openWithdraw() {
+    let method = CFG.cryptopay ? 'cryptobot' : 'card';
+    const fee = CFG.withdraw_fee_percent;
+    openSheet(`<h3>Вивести гроші</h3>
+        <p class="lead">Доступно ${uah(ME.balance)}. Мінімум ${uah(CFG.min_withdraw)}${fee ? `, комісія ${fee}%` : ''}. Заявку перевіряє адміністратор, зазвичай до 24 годин.</p>
+        <label class="field"><span>Сума, ₴</span><input id="wAmount" inputmode="decimal" placeholder="${ME.balance / 100}"></label>
+        <div class="methods">
+            ${CFG.cryptopay ? `<button data-m="cryptobot" class="${method === 'cryptobot' ? 'on' : ''}">${ic('bot', 'i--l')}CryptoBot, USDT</button>` : ''}
+            <button data-m="card" class="${method === 'card' ? 'on' : ''}">${ic('card', 'i--l')}Банківська картка</button>
+        </div>
+        <label class="field" id="wCardBox" ${method === 'card' ? '' : 'hidden'}><span>Номер картки</span><input id="wCard" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000"></label>
+        <button class="btn btn--main" id="wBtn">${ic('out')}Створити заявку</button>${sheetCancel()}`);
+    document.querySelectorAll('.methods button').forEach(b => b.onclick = () => {
+        haptic(); document.querySelector('.methods .on')?.classList.remove('on'); b.classList.add('on');
+        method = b.dataset.m; document.getElementById('wCardBox').hidden = method !== 'card';
+    });
+    const card = document.getElementById('wCard');
+    card.oninput = () => { card.value = card.value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 '); };
+    const b = document.getElementById('wBtn');
+    b.onclick = () => run(b, async () => {
+        await api('/api/withdraw', { amount: document.getElementById('wAmount').value.replace(',', '.'), method, details: card.value });
+        closeSheet(); await refreshMe(); toast('Заявку на виведення створено'); render('fade');
+    });
+}
+
+function showRules() {
+    openSheet(`<h3>Як працює безпечна угода</h3>
+        <p class="lead">Маркет тримає гроші покупця, поки той не підтвердить, що отримав товар.</p>
+        <ol class="steps-list">
+            <li>Ти оплачуєш товар з балансу. Гроші заморожуються, продавець їх ще не отримує.</li>
+            <li>Продавець передає товар у грі й натискає «Передав». Якщо не встигне за ${CFG.delivery_hours} год, гроші автоматично повернуться тобі.</li>
+            <li>Ти перевіряєш товар і натискаєш «Отримав». Лише тоді продавець отримує гроші.</li>
+        </ol>
+        <div class="hint">${ic('scale')}<span>Якщо щось не так — відкрий спір. Адміністратор вирішить за перепискою в чаті угоди.</span></div>
+        <div class="hint">${ic('clock')}<span>Якщо покупець мовчить ${CFG.confirm_hours} год після передачі, угода закривається на користь продавця.</span></div>
+        <div class="hint hint--red">${ic('alert')}<span>Не плати напряму й не переходь в особисті. Поза маркетом ми не зможемо повернути гроші.</span></div>
+        <p class="note">Для покупця угода безкоштовна. Продавець платить ${CFG.commission_percent}% комісії з продажу.</p>
+        ${sheetCancel('Зрозуміло')}`);
+}
+
+// ================================================================ старт
+async function boot() {
+    if (!tg || !tg.initData) {
+        document.getElementById('tabbar').style.display = 'none';
+        $main.innerHTML = `<div class="gate">${ic('tg', 'i--l')}<p>Відкрий RP Market через Telegram-бота. Так маркет знає, що це саме ти, і захищає твої угоди.</p></div>`;
+        return;
     }
-    boot();
-    </script>
+    tg.ready(); tg.expand();
+    try { tg.setHeaderColor('#121722'); tg.setBackgroundColor('#121722'); } catch (e) {}
+    try { tg.setBottomBarColor('#121722'); } catch (e) {}
+    try { tg.disableVerticalSwipes(); } catch (e) {}
+    tg.BackButton.onClick(back);
+    $main.innerHTML = skeletonPage();
+    try { await refreshMe(); }
+    catch (e) {
+        $main.innerHTML = `<div class="empty">${ic('alert')}<p>${esc(e.message)}</p><button class="btn btn--ghost btn--s" onclick="location.reload()">Спробувати ще раз</button></div>`;
+        return;
+    }
+    const qs = new URLSearchParams(location.search);
+    const sp = tg.initDataUnsafe.start_param || '';
+    const pick = (k, pre) => { const v = qs.get(k) || (sp.startsWith(pre) ? sp.slice(pre.length) : null); return v && /^\d+$/.test(v) ? +v : null; };
+    const dealId = pick('deal', 'deal_'), listingId = pick('listing', 'l_'), userId = pick('user', 'u_');
+    if (dealId) { state.tab = 'deals'; state.stack = [{ name: 'deals', params: {} }, { name: 'deal', params: { id: dealId } }]; }
+    else if (listingId) { state.tab = 'market'; state.stack = [{ name: 'home', params: {} }, { name: 'listing', params: { id: listingId } }]; }
+    else if (userId) { state.tab = 'market'; state.stack = [{ name: 'home', params: {} }, { name: 'user', params: { id: userId } }]; }
+    else { state.tab = 'market'; state.stack = [{ name: 'home', params: {} }]; }
+    render('fade');
+}
+boot();
+</script>
 </body>
 </html>
